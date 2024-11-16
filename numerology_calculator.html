@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нумерологический Калькулятор</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin: 20px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Нумерологический Калькулятор</h1>
+    <form id="calculator-form">
+        <label for="birthdate">Введите вашу дату рождения:</label><br>
+        <input type="date" id="birthdate" required><br>
+        <button type="button" onclick="calculate()">Рассчитать</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        function calculate() {
+            const birthdate = document.getElementById("birthdate").value;
+            if (!birthdate) {
+                alert("Пожалуйста, введите дату рождения.");
+                return;
+            }
+
+            const digits = birthdate.replace(/-/g, '').split('').map(Number);
+            let lifePathNumber = digits.reduce((a, b) => a + b);
+            while (lifePathNumber > 9 && ![11, 22, 33].includes(lifePathNumber)) {
+                lifePathNumber = String(lifePathNumber).split('').reduce((a, b) => +a + +b, 0);
+            }
+
+            document.getElementById("result").innerHTML = `
+                <h2>Ваше число судьбы: ${lifePathNumber}</h2>
+                <p>Это число определяет вашу жизненную миссию и основные черты характера.</p>
+            `;
+        }
+    </script>
+</body>
+</html>
