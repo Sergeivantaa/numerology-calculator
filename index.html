@@ -2,390 +2,1083 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#1B4332">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Työajanseuranta Platform</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/main.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Työajanseuranta</title>
+<style>
+:root {
+  --primary: #1B4332;
+  --primary-light: #2D6A4F;
+  --accent: #D4A017;
+  --danger: #B23A2E;
+  --success: #2D6A4F;
+  --warn: #C07A00;
+  --bg: #F5F5F0;
+  --card: #FFFFFF;
+  --border: #DDD;
+  --text: #1A1A1A;
+  --muted: #666;
+  --radius: 10px;
+  --shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
+
+/* ── Login ── */
+#loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--primary); }
+.login-box { background: #fff; border-radius: 16px; padding: 36px 32px; width: 320px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+.login-logo { font-size: 2rem; margin-bottom: 4px; }
+.login-title { font-size: 1.3rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.login-sub { font-size: .85rem; color: var(--muted); margin-bottom: 20px; }
+.login-worker-sel { width: 100%; margin-bottom: 12px; }
+.pin-display { font-size: 2rem; letter-spacing: .4em; min-height: 2.5rem; color: var(--primary); margin-bottom: 16px; }
+.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pin-btn { padding: 16px; font-size: 1.2rem; font-weight: 600; border: 1px solid var(--border); border-radius: 8px; background: #f9f9f9; cursor: pointer; transition: background .1s; }
+.pin-btn:active { background: #e8e8e8; }
+.pin-btn.danger { background: #fff0f0; color: var(--danger); }
+.login-err { color: var(--danger); font-size: .85rem; margin-top: 8px; min-height: 1.2em; }
+
+/* ── App shell ── */
+#app { display: none; min-height: 100vh; flex-direction: column; }
+#app.visible { display: flex; }
+.app-header { background: var(--primary); color: #fff; padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.app-title { font-weight: 700; font-size: 1.05rem; }
+.header-right { display: flex; align-items: center; gap: 12px; font-size: .85rem; }
+.logout-btn { background: rgba(255,255,255,.15); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: .8rem; }
+.logout-btn:hover { background: rgba(255,255,255,.25); }
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar { width: 200px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 12px 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 18px; cursor: pointer; transition: background .15s; font-size: .92rem; color: var(--text); border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: var(--bg); }
+.nav-item.active { background: #e8f5ee; color: var(--primary); font-weight: 600; }
+.nav-sep { height: 1px; background: var(--border); margin: 8px 12px; }
+.nav-admin-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 6px 18px 2px; }
+
+/* ── Main content ── */
+.main-content { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* ── Panels ── */
+.panel { display: none; }
+.panel.active { display: block; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.panel-title { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+
+/* ── Cards ── */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; }
+.card-title { font-weight: 600; font-size: .95rem; margin-bottom: 10px; color: var(--primary); }
+
+/* ── Buttons ── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: .88rem; font-weight: 500; transition: opacity .15s, transform .1s; }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); }
+.btn-green { background: var(--success); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-warn { background: var(--warn); color: #fff; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { background: var(--bg); }
+.btn-sm { padding: 6px 12px; font-size: .82rem; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Forms ── */
+.inp { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: .88rem; background: #fff; }
+.inp:focus { outline: none; border-color: var(--primary); }
+.inp-sm { padding: 7px 10px; font-size: .82rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: .82rem; color: var(--muted); margin-bottom: 4px; display: block; }
+select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+
+/* ── Stat boxes ── */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.stat-box { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; text-align: center; }
+.stat-box.stat-warn { border: 2px solid var(--accent); }
+.stat-val { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+.stat-lbl { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 20px; }
+
+/* ── Timer ── */
+.timer-display { font-size: 3rem; font-weight: 700; color: var(--primary); text-align: center; padding: 20px 0; font-variant-numeric: tabular-nums; }
+.shift-active { border-left: 4px solid var(--success); }
+
+/* ── Calendar ── */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-nav-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.view-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; }
+.view-tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .85rem; border: none; background: none; }
+.view-tab.active { background: var(--card); font-weight: 600; box-shadow: var(--shadow); }
+.cal-grid { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.cal-day-header { background: var(--primary); color: #fff; padding: 8px; text-align: center; font-size: .78rem; font-weight: 600; }
+.cal-cell { background: var(--card); padding: 6px; min-height: 80px; }
+.cal-cell.today { background: #f0f9f4; }
+.cal-cell.other-month { opacity: .5; }
+.cal-date { font-size: .78rem; font-weight: 600; color: var(--muted); }
+.cal-entry-chip { font-size: .7rem; background: var(--primary); color: #fff; border-radius: 4px; padding: 1px 5px; margin-top: 2px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day-entry-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--card); border-radius: 8px; border-left: 4px solid var(--primary); cursor: pointer; box-shadow: var(--shadow); margin-bottom: 8px; }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.data-table th { text-align: left; padding: 10px 12px; background: var(--bg); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--border); }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #fafafa; }
+.row-inactive td { opacity: .6; }
+.row-actions { display: flex; gap: 4px; }
+.icon-btn { background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: .95rem; }
+.icon-btn:hover { background: var(--bg); }
+
+/* ── Badges ── */
+.role-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.role-admin { background: #fff3cd; color: #856404; }
+.role-worker { background: #e8f5ee; color: var(--primary); }
+.status-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .72rem; font-weight: 600; }
+.status-approved { background: #e8f5ee; color: var(--success); }
+.status-rejected { background: #fde8e6; color: var(--danger); }
+.status-submitted { background: #fff3cd; color: #856404; }
+
+/* ── Modal ── */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--card); border-radius: 14px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+.modal-header { padding: 18px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-weight: 700; font-size: 1.05rem; }
+.modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); line-height: 1; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ── Toast ── */
+#toastContainer { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: #333; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: .88rem; min-width: 200px; animation: slideIn .2s; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+.toast.warn { background: var(--warn); }
+.toast.info { background: #0077cc; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Misc ── */
+.search-row, .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.empty-msg { color: var(--muted); text-align: center; padding: 32px; font-size: .9rem; }
+.worker-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.worker-row:last-child { border-bottom: none; }
+.worker-name { font-weight: 600; font-size: .9rem; }
+.worker-sites { font-size: .78rem; color: var(--muted); }
+.worker-hours { font-size: 1.05rem; font-weight: 700; color: var(--muted); }
+.worker-hours.has-hours { color: var(--primary); }
+.pending-row { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.pending-row:last-child { border-bottom: none; }
+.quick-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.gps-status { font-size: .82rem; color: var(--muted); margin-top: 6px; padding: 6px 10px; background: var(--bg); border-radius: 6px; }
+.report-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.report-stat { text-align: center; padding: 12px; background: var(--bg); border-radius: 8px; }
+.report-stat .val { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+.report-stat .lbl { font-size: .75rem; color: var(--muted); }
+
+/* ── Mobile bottom nav ── */
+.bottom-nav { display: none; }
+
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); z-index: 100; }
+  .bottom-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; font-size: .65rem; cursor: pointer; border: none; background: none; color: var(--muted); gap: 2px; }
+  .bottom-nav-item.active { color: var(--primary); }
+  .bottom-nav-item .icon { font-size: 1.3rem; }
+  .main-content { padding: 12px; padding-bottom: 80px; }
+  .form-row { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .data-table { font-size: .78rem; }
+  .data-table th, .data-table td { padding: 7px 8px; }
+}
+</style>
 </head>
 <body>
 
-<!-- ══ TOAST ═══════════════════════════════════════════════════════════ -->
-<div id="toastContainer" class="toast"></div>
-
-<!-- ══ LOGIN OVERLAY ═══════════════════════════════════════════════════ -->
-<div id="loginOverlay">
+<!-- ── Login ── -->
+<div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">🏗️</div>
     <div class="login-title">Työajanseuranta</div>
-    <div class="login-sub">Rakennusalan työvuoroseurantajärjestelmä</div>
-
-    <div id="loginError" class="login-error"></div>
-
-    <label class="field-lbl">Valitse nimesi</label>
-    <select id="loginWorkerSelect" class="inp" style="margin-bottom:14px">
-      <option value="">– Valitse –</option>
+    <div class="login-sub">Rakennusalan työtuntien seuranta</div>
+    <select class="inp login-worker-sel" id="loginWorkerSel">
+      <option value="">– Valitse käyttäjä –</option>
     </select>
-
-    <label class="field-lbl">PIN-koodi</label>
-    <div class="pin-display" id="pinDisplay">
-      <span id="pinDots"></span>
-    </div>
-    <!-- Hidden real input for accessibility / keyboard on desktop -->
-    <input type="password" id="loginPin" class="inp" placeholder="PIN" maxlength="6"
-           style="text-align:center;letter-spacing:.5em;font-size:1.2rem;margin-bottom:4px"
-           onkeydown="if(event.key==='Enter') handleLogin()"
-           oninput="document.getElementById('pinDots').textContent='●'.repeat(this.value.length)">
-
+    <div class="pin-display" id="pinDisplay">––––</div>
     <div class="pin-pad">
-      ${[1,2,3,4,5,6,7,8,9,'','0','⌫'].map(k => k === ''
-        ? '<div></div>'
-        : `<button class="pin-key" onclick="${k==='⌫' ? "const p=document.getElementById('loginPin');p.value=p.value.slice(0,-1);document.getElementById('pinDots').textContent='●'.repeat(p.value.length)" : `appendPin('${k}')`}">${k}</button>`
-      ).join('')}
+      <button class="pin-btn" onclick="appendPin('1')">1</button>
+      <button class="pin-btn" onclick="appendPin('2')">2</button>
+      <button class="pin-btn" onclick="appendPin('3')">3</button>
+      <button class="pin-btn" onclick="appendPin('4')">4</button>
+      <button class="pin-btn" onclick="appendPin('5')">5</button>
+      <button class="pin-btn" onclick="appendPin('6')">6</button>
+      <button class="pin-btn" onclick="appendPin('7')">7</button>
+      <button class="pin-btn" onclick="appendPin('8')">8</button>
+      <button class="pin-btn" onclick="appendPin('9')">9</button>
+      <button class="pin-btn danger" onclick="clearPin()">✕</button>
+      <button class="pin-btn" onclick="appendPin('0')">0</button>
+      <button class="pin-btn" onclick="handleLogin()">✓</button>
     </div>
-
-    <button class="btn btn-primary btn-full" onclick="handleLogin()" style="margin-top:4px">Kirjaudu sisään</button>
-    <p style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:12px">
-      Demo: Admin=1234 &nbsp;|&nbsp; Työntekijät=0000
-    </p>
+    <div class="login-err" id="loginErr"></div>
   </div>
 </div>
 
-<!-- ══ APP SHELL ═══════════════════════════════════════════════════════ -->
+<!-- ── App ── -->
 <div id="app">
-
-  <!-- Header -->
-  <header id="appHeader">
-    <span class="header-logo">🏗️</span>
-    <div class="header-brand">
-      <div class="header-brand-name">Työajanseuranta</div>
-      <div class="header-brand-title">Platform</div>
+  <header class="app-header">
+    <div class="app-title">🏗️ Työajanseuranta</div>
+    <div class="header-right">
+      <span id="headerUser"></span>
+      <button class="logout-btn" onclick="logout()">Kirjaudu ulos</button>
     </div>
-    <span id="headerShiftBadge">▶ 00:00:00</span>
-    <div class="header-user">
-      <div class="header-user-name" id="headerWorkerName">–</div>
-      <span id="headerWorkerRole" class="role-badge role-worker">Työntekijä</span>
-    </div>
-    <button class="header-logout" onclick="logout()">Ulos</button>
   </header>
 
-  <div id="appBody">
-
-    <!-- Side navigation (desktop) -->
-    <nav id="sideNav">
-      <div class="nav-section">Päävalikko</div>
-      <button class="nav-item active" data-panel="home"     onclick="switchPanel('home')">
-        <span class="nav-icon">🏠</span> Etusivu
-      </button>
-      <button class="nav-item" data-panel="timer"    onclick="switchPanel('timer')">
-        <span class="nav-icon">⏱</span> Työvuoro
-      </button>
-      <button class="nav-item" data-panel="calendar" onclick="switchPanel('calendar')">
-        <span class="nav-icon">📅</span> Kalenteri
-      </button>
-      <button class="nav-item" data-panel="reports"  onclick="switchPanel('reports')">
-        <span class="nav-icon">📊</span> Raportit
-      </button>
-
-      <div class="nav-section" data-admin-only style="margin-top:8px">Hallinta</div>
-      <button class="nav-item" data-panel="workers"   onclick="switchPanel('workers')"   data-admin-only>
-        <span class="nav-icon">👷</span> Työntekijät
-      </button>
-      <button class="nav-item" data-panel="customers" onclick="switchPanel('customers')" data-admin-only>
-        <span class="nav-icon">🏢</span> Asiakkaat
-      </button>
-      <button class="nav-item" data-panel="sites"     onclick="switchPanel('sites')"     data-admin-only>
-        <span class="nav-icon">📍</span> Työkohteet
-      </button>
-
-      <div class="nav-section" style="margin-top:8px">Järjestelmä</div>
-      <button class="nav-item" data-panel="settings" onclick="switchPanel('settings')">
-        <span class="nav-icon">⚙️</span> Asetukset
-      </button>
+  <div class="app-body">
+    <nav class="sidebar">
+      <button class="nav-item" data-panel="home" onclick="switchPanel('home')">🏠 Etusivu</button>
+      <button class="nav-item" data-panel="timer" onclick="switchPanel('timer')">⏱ Ajastin</button>
+      <button class="nav-item" data-panel="calendar" onclick="switchPanel('calendar')">📅 Kalenteri</button>
+      <button class="nav-item" data-panel="reports" onclick="switchPanel('reports')">📊 Raportit</button>
+      <div class="nav-sep" id="adminSep" style="display:none"></div>
+      <div class="nav-admin-label" id="adminLabel" style="display:none">Hallinta</div>
+      <button class="nav-item" data-panel="workers" id="navWorkers" style="display:none" onclick="switchPanel('workers')">👷 Työntekijät</button>
+      <button class="nav-item" data-panel="customers" id="navCustomers" style="display:none" onclick="switchPanel('customers')">🏢 Asiakkaat</button>
+      <button class="nav-item" data-panel="sites" id="navSites" style="display:none" onclick="switchPanel('sites')">📍 Työkohteet</button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" data-panel="settings" onclick="switchPanel('settings')">⚙️ Asetukset</button>
     </nav>
 
-    <!-- Main content -->
-    <main id="mainContent">
-
-      <!-- Home panel -->
-      <div id="panel-home">
-        <div id="panelHome"></div>
-      </div>
-
-      <!-- Timer panel -->
-      <div id="panel-timer" style="display:none">
-        <div class="panel-header">
-          <h2 class="panel-title">⏱ Työvuoro</h2>
-        </div>
-        <div id="timerPanel"></div>
-      </div>
-
-      <!-- Calendar panel -->
-      <div id="panel-calendar" style="display:none">
-        <div class="panel-header">
-          <h2 class="panel-title">📅 Kalenteri</h2>
-        </div>
-
-        <div class="cal-controls">
-          <div class="cal-view-btns">
-            <button class="cal-view-btn" data-view="day"   onclick="setCalendarView('day')">Päivä</button>
-            <button class="cal-view-btn active" data-view="month" onclick="setCalendarView('month')">Kuukausi</button>
-            <button class="cal-view-btn" data-view="week"  onclick="setCalendarView('week')">Viikko</button>
-          </div>
-          <div class="cal-nav">
-            <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
-            <span id="calNavLabel"></span>
-            <button class="cal-nav-btn" onclick="calNav(1)">›</button>
-            <button class="cal-nav-btn btn-sm" onclick="calToday()">Tänään</button>
-          </div>
-        </div>
-
-        <div class="cal-filters">
-          <select class="inp inp-sm" id="calFilterWorker" style="max-width:160px" onchange="applyCalendarFilters()"></select>
-          <select class="inp inp-sm" id="calFilterSite"   style="max-width:160px" onchange="applyCalendarFilters()"></select>
-          <select class="inp inp-sm" id="calFilterCustomer" style="max-width:160px" onchange="applyCalendarFilters()"></select>
-        </div>
-
-        <div class="card">
-          <div id="calContent"></div>
-        </div>
-      </div>
-
-      <!-- Reports panel -->
-      <div id="panel-reports" style="display:none">
-        <div id="reportsPanel"></div>
-      </div>
-
-      <!-- Workers panel (admin) -->
-      <div id="panel-workers" style="display:none" data-admin-only>
-        <div id="workersPanel"></div>
-      </div>
-
-      <!-- Customers panel (admin) -->
-      <div id="panel-customers" style="display:none" data-admin-only>
-        <div id="customersPanel"></div>
-      </div>
-
-      <!-- Sites panel (admin) -->
-      <div id="panel-sites" style="display:none" data-admin-only>
-        <div id="sitesPanel"></div>
-      </div>
-
-      <!-- Settings panel -->
-      <div id="panel-settings" style="display:none">
-        <div id="panelSettings"></div>
-      </div>
-
+    <main class="main-content">
+      <div id="panel-home" class="panel"></div>
+      <div id="panel-timer" class="panel"></div>
+      <div id="panel-calendar" class="panel"></div>
+      <div id="panel-reports" class="panel"></div>
+      <div id="panel-workers" class="panel"></div>
+      <div id="panel-customers" class="panel"></div>
+      <div id="panel-sites" class="panel"></div>
+      <div id="panel-settings" class="panel"></div>
     </main>
   </div>
 
-  <!-- Bottom navigation (mobile) -->
-  <nav id="bottomNav">
-    <div class="bottom-nav-items">
-      <button class="bottom-nav-item active" data-panel="home"     onclick="switchPanel('home')">
-        <span class="bnav-icon">🏠</span>Etusivu
-      </button>
-      <button class="bottom-nav-item" data-panel="timer"    onclick="switchPanel('timer')">
-        <span class="bnav-icon">⏱</span>Vuoro
-      </button>
-      <button class="bottom-nav-item" data-panel="calendar" onclick="switchPanel('calendar')">
-        <span class="bnav-icon">📅</span>Kalenteri
-      </button>
-      <button class="bottom-nav-item" data-panel="reports"  onclick="switchPanel('reports')">
-        <span class="bnav-icon">📊</span>Raportit
-      </button>
-      <button class="bottom-nav-item" data-panel="settings" onclick="switchPanel('settings')">
-        <span class="bnav-icon">⚙️</span>Asetukset
-      </button>
-    </div>
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item" data-panel="home" onclick="switchPanel('home')"><span class="icon">🏠</span>Koti</button>
+    <button class="bottom-nav-item" data-panel="timer" onclick="switchPanel('timer')"><span class="icon">⏱</span>Ajastin</button>
+    <button class="bottom-nav-item" data-panel="calendar" onclick="switchPanel('calendar')"><span class="icon">📅</span>Kalenteri</button>
+    <button class="bottom-nav-item" data-panel="reports" onclick="switchPanel('reports')"><span class="icon">📊</span>Raportit</button>
+    <button class="bottom-nav-item" data-panel="settings" onclick="switchPanel('settings')"><span class="icon">⚙️</span>Asetukset</button>
   </nav>
-
-</div><!-- /app -->
-
-<!-- ══ MODALS ═══════════════════════════════════════════════════════════ -->
-
-<!-- Entry detail -->
-<div class="modal-bg" id="entryDetailModal">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Kirjauksen tiedot</span>
-      <button class="modal-close" onclick="closeModal('entryDetailModal')">✕</button>
-    </div>
-    <div class="modal-body" id="entryDetailBody"></div>
-  </div>
 </div>
 
-<!-- Worker form -->
+<!-- Modals -->
 <div class="modal-bg" id="workerModal">
   <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="workerModalTitle">Työntekijä</span>
-      <button class="modal-close" onclick="closeModal('workerModal')">✕</button>
+    <div class="modal-header"><span class="modal-title" id="workerModalTitle">Työntekijä</span><button class="modal-close" onclick="closeModal('workerModal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nimi *</label><input class="inp" id="wf_name"></div>
+        <div class="form-group"><label class="form-label">Rooli</label><select class="inp" id="wf_role"><option value="worker">Työntekijä</option><option value="admin">Admin</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Sähköposti</label><input class="inp" id="wf_email" type="email"></div>
+        <div class="form-group"><label class="form-label">Puhelin</label><input class="inp" id="wf_phone"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">PIN (4 num.)</label><input class="inp" id="wf_pin" type="password" maxlength="4" inputmode="numeric"></div>
+        <div class="form-group"><label class="form-label">Tuntipalkka €/h</label><input class="inp" id="wf_hourlyRate" type="number" step="0.01" min="0"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Ylityökerroin</label><input class="inp" id="wf_overtimeMultiplier" type="number" step="0.1" min="1" value="1.5"></div>
     </div>
-    <form id="workerForm" onsubmit="return false" class="modal-body">
-      <label class="field-lbl">Nimi *</label>
-      <input id="wf_name" class="inp" placeholder="Etunimi Sukunimi" required>
-
-      <label class="field-lbl">Rooli</label>
-      <select id="wf_role" class="inp">
-        <option value="worker">Työntekijä</option>
-        <option value="admin">Admin</option>
-      </select>
-
-      <div class="form-grid">
-        <div>
-          <label class="field-lbl">PIN-koodi</label>
-          <input id="wf_pin" class="inp" placeholder="4–6 numeroa" maxlength="6">
-        </div>
-        <div>
-          <label class="field-lbl">Tuntipalkka (€)</label>
-          <input id="wf_hourlyRate" type="number" step="0.5" class="inp" placeholder="20.00">
-        </div>
-        <div>
-          <label class="field-lbl">Sähköposti</label>
-          <input id="wf_email" type="email" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">Puhelin</label>
-          <input id="wf_phone" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">Ylityökerroin</label>
-          <input id="wf_overtimeMultiplier" type="number" step="0.1" class="inp" value="1.5">
-        </div>
-      </div>
-      <div class="btn-row mt-4">
-        <button class="btn btn-primary" onclick="saveWorker()">Tallenna</button>
-        <button class="btn btn-ghost"   onclick="closeModal('workerModal')">Peruuta</button>
-      </div>
-    </form>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('workerModal')">Peruuta</button><button class="btn btn-primary" onclick="saveWorker()">Tallenna</button></div>
   </div>
 </div>
 
-<!-- Customer form -->
 <div class="modal-bg" id="customerModal">
   <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="customerModalTitle">Asiakas</span>
-      <button class="modal-close" onclick="closeModal('customerModal')">✕</button>
+    <div class="modal-header"><span class="modal-title" id="customerModalTitle">Asiakas</span><button class="modal-close" onclick="closeModal('customerModal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Yrityksen nimi *</label><input class="inp" id="cf_name"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Yhteyshenkilö</label><input class="inp" id="cf_contactPerson"></div>
+        <div class="form-group"><label class="form-label">Y-tunnus</label><input class="inp" id="cf_businessId"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Sähköposti</label><input class="inp" id="cf_email" type="email"></div>
+        <div class="form-group"><label class="form-label">Puhelin</label><input class="inp" id="cf_phone"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Osoite</label><input class="inp" id="cf_address"></div>
+        <div class="form-group"><label class="form-label">Kaupunki</label><input class="inp" id="cf_city"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Muistiinpanot</label><textarea class="inp" id="cf_notes" rows="2"></textarea></div>
     </div>
-    <form id="customerForm" onsubmit="return false" class="modal-body">
-      <label class="field-lbl">Yrityksen nimi *</label>
-      <input id="cf_name" class="inp" placeholder="Yritys Oy" required>
-
-      <div class="form-grid">
-        <div>
-          <label class="field-lbl">Yhteyshenkilö</label>
-          <input id="cf_contactPerson" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">Y-tunnus</label>
-          <input id="cf_businessId" class="inp" placeholder="1234567-8">
-        </div>
-        <div>
-          <label class="field-lbl">Sähköposti</label>
-          <input id="cf_email" type="email" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">Puhelin</label>
-          <input id="cf_phone" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">Katuosoite</label>
-          <input id="cf_address" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">Kaupunki</label>
-          <input id="cf_city" class="inp">
-        </div>
-      </div>
-      <label class="field-lbl">Muistiinpanot</label>
-      <textarea id="cf_notes" class="inp" rows="2"></textarea>
-      <div class="btn-row mt-4">
-        <button class="btn btn-primary" onclick="saveCustomer()">Tallenna</button>
-        <button class="btn btn-ghost"   onclick="closeModal('customerModal')">Peruuta</button>
-      </div>
-    </form>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('customerModal')">Peruuta</button><button class="btn btn-primary" onclick="saveCustomer()">Tallenna</button></div>
   </div>
 </div>
 
-<!-- Site form -->
 <div class="modal-bg" id="siteModal">
   <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="siteModalTitle">Työkohde</span>
-      <button class="modal-close" onclick="closeModal('siteModal')">✕</button>
+    <div class="modal-header"><span class="modal-title" id="siteModalTitle">Työkohde</span><button class="modal-close" onclick="closeModal('siteModal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Kohteen nimi *</label><input class="inp" id="sf_name"></div>
+      <div class="form-group"><label class="form-label">Asiakas *</label><select class="inp" id="sf_customerId"><option value="">– Asiakas –</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Osoite</label><input class="inp" id="sf_address"></div>
+        <div class="form-group"><label class="form-label">Kaupunki</label><input class="inp" id="sf_city"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">GPS Lat</label><input class="inp" id="sf_lat" type="number" step="any"></div>
+        <div class="form-group"><label class="form-label">GPS Lon</label><input class="inp" id="sf_lon" type="number" step="any"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">GPS Säde (m)</label><input class="inp" id="sf_gpsRadius" type="number" value="200"></div>
+        <div class="form-group"><label class="form-label">Tila</label><select class="inp" id="sf_status"><option value="active">Aktiivinen</option><option value="done">Valmis</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Muistiinpanot</label><textarea class="inp" id="sf_notes" rows="2"></textarea></div>
     </div>
-    <form id="siteForm" onsubmit="return false" class="modal-body">
-      <label class="field-lbl">Kohteen nimi *</label>
-      <input id="sf_name" class="inp" placeholder="Työmaa Helsinki A" required>
-
-      <label class="field-lbl">Asiakas *</label>
-      <select id="sf_customerId" class="inp"></select>
-
-      <div class="form-grid">
-        <div>
-          <label class="field-lbl">Katuosoite</label>
-          <input id="sf_address" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">Kaupunki</label>
-          <input id="sf_city" class="inp">
-        </div>
-        <div>
-          <label class="field-lbl">GPS Latitude</label>
-          <input id="sf_lat" type="number" step="any" class="inp" placeholder="60.1699">
-        </div>
-        <div>
-          <label class="field-lbl">GPS Longitude</label>
-          <input id="sf_lon" type="number" step="any" class="inp" placeholder="24.9384">
-        </div>
-        <div>
-          <label class="field-lbl">GPS-säde (m)</label>
-          <input id="sf_gpsRadius" type="number" class="inp" value="200">
-        </div>
-        <div>
-          <label class="field-lbl">Tila</label>
-          <select id="sf_status" class="inp">
-            <option value="active">Aktiivinen</option>
-            <option value="done">Valmis</option>
-          </select>
-        </div>
-      </div>
-
-      <label class="field-lbl">Muistiinpanot</label>
-      <textarea id="sf_notes" class="inp" rows="2"></textarea>
-
-      <div class="btn-row mt-4">
-        <button class="btn btn-primary" onclick="saveSite()">Tallenna</button>
-        <button class="btn btn-ghost"   onclick="closeModal('siteModal')">Peruuta</button>
-      </div>
-    </form>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('siteModal')">Peruuta</button><button class="btn btn-primary" onclick="saveSite()">Tallenna</button></div>
   </div>
 </div>
 
-<!-- ══ SCRIPTS ══════════════════════════════════════════════════════════ -->
-<script type="module" src="assets/js/app.js"></script>
+<div class="modal-bg" id="entryDetailModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Kirjauksen tiedot</span><button class="modal-close" onclick="closeModal('entryDetailModal')">×</button></div>
+    <div class="modal-body" id="entryDetailBody"></div>
+    <div class="modal-footer" id="entryDetailFooter"></div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
 
 <script>
-  // switchPanel is exposed from app.js module onto window directly
-  // These stubs allow onclick handlers in HTML to fire before the module resolves
-  ['switchPanel','handleLogin','appendPin','clearPin','logout',
-   'startShift','stopShift','detectGPS',
-   'setCalendarView','calNav','calToday','calGotoDay','applyCalendarFilters','openEntryDetail',
-   'filterWorkers','openWorkerForm','saveWorker','toggleWorkerActive',
-   'filterCustomers','openCustomerForm','saveCustomer',
-   'filterSites','openSiteForm','saveSite','toggleSiteStatus',
-   'approveEntry','rejectEntry','deleteEntry',
-   'runReport','exportCSVReport','exportPDF',
-   'closeModal','exportData','importData'
-  ].forEach(fn => {
-    if (!window[fn]) window[fn] = (...args) => console.warn(`${fn} not yet loaded`);
-  });
-</script>
+// ══════════════════════════════════════════════════
+// DB
+// ══════════════════════════════════════════════════
+var P = 'wt_';
+var db = {
+  _t: function(n) { try { return JSON.parse(localStorage.getItem(P+n)||'[]'); } catch(e) { return []; } },
+  _s: function(n,r) { localStorage.setItem(P+n, JSON.stringify(r)); },
+  list: function(n,f) { var r=this._t(n); return f?r.filter(f):r; },
+  get: function(n,id) { return this._t(n).find(function(r){return r.id===id;})||null; },
+  insert: function(n,row) {
+    var rows=this._t(n);
+    var nr=Object.assign({id:(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)),createdAt:new Date().toISOString()},row);
+    rows.push(nr); this._s(n,rows); return nr;
+  },
+  update: function(n,id,ch) {
+    var rows=this._t(n),idx=rows.findIndex(function(r){return r.id===id;});
+    if(idx!==-1){rows[idx]=Object.assign({},rows[idx],ch,{updatedAt:new Date().toISOString()});this._s(n,rows);}
+    return rows[idx]||null;
+  },
+  remove: function(n,id) { this._s(n,this._t(n).filter(function(r){return r.id!==id;})); },
+  resetAll: function() { ['workers','customers','sites','entries'].forEach(function(t){localStorage.removeItem(P+t);}); },
+  export: function() { var o={}; ['workers','customers','sites','entries'].forEach(function(t){o[t]=db._t(t);}); return o; },
+  import: function(snap) { Object.keys(snap).forEach(function(t){db._s(t,snap[t]);}); }
+};
 
+// ══════════════════════════════════════════════════
+// SEED
+// ══════════════════════════════════════════════════
+function seedIfEmpty() {
+  if (db.list('workers').length > 0) return;
+  var w1=db.insert('workers',{name:'Matti Virtanen',role:'admin',pin:'1234',email:'matti@example.fi',phone:'040-1234567',hourlyRate:22,overtimeMultiplier:1.5,active:true});
+  var w2=db.insert('workers',{name:'Juha Korhonen',role:'worker',pin:'0000',email:'juha@example.fi',phone:'040-2345678',hourlyRate:18,overtimeMultiplier:1.5,active:true});
+  var w3=db.insert('workers',{name:'Sari Mäkinen',role:'worker',pin:'0000',email:'sari@example.fi',phone:'040-3456789',hourlyRate:18,overtimeMultiplier:1.5,active:true});
+  var w4=db.insert('workers',{name:'Pekka Leinonen',role:'worker',pin:'0000',email:'pekka@example.fi',phone:'040-4567890',hourlyRate:16,overtimeMultiplier:1.5,active:true});
+  var c1=db.insert('customers',{name:'Rakennusliike Oy',contactPerson:'Kari Niemi',email:'kari@rakennus.fi',phone:'09-1234567',address:'Mannerheimintie 1',city:'Helsinki',businessId:'1234567-8',active:true});
+  var c2=db.insert('customers',{name:'Kiinteistö Oy Vantaa',contactPerson:'Liisa Salo',email:'liisa@kiint.fi',phone:'09-2345678',address:'Tikkurilantie 5',city:'Vantaa',businessId:'2345678-9',active:true});
+  var c3=db.insert('customers',{name:'Espoo Rakennus Oy',contactPerson:'Timo Lehtinen',email:'timo@espoor.fi',phone:'09-3456789',address:'Espoonkatu 10',city:'Espoo',businessId:'3456789-0',active:true});
+  var s1=db.insert('sites',{name:'Helsinki Kamppi A',customerId:c1.id,address:'Urho Kekkosen katu 1',city:'Helsinki',lat:60.1699,lon:24.9384,gpsRadius:200,status:'active'});
+  var s2=db.insert('sites',{name:'Helsinki Töölö B',customerId:c1.id,address:'Runeberginkatu 12',city:'Helsinki',lat:60.1764,lon:24.9233,gpsRadius:150,status:'active'});
+  var s3=db.insert('sites',{name:'Vantaa Toimisto',customerId:c2.id,address:'Tikkurilantie 5',city:'Vantaa',lat:60.2925,lon:25.0448,gpsRadius:200,status:'active'});
+  var s4=db.insert('sites',{name:'Vantaa Varasto',customerId:c2.id,address:'Teollisuustie 3',city:'Vantaa',lat:60.2881,lon:25.0391,gpsRadius:300,status:'active'});
+  var s5=db.insert('sites',{name:'Espoo Leppävaara',customerId:c3.id,address:'Espoonkatu 10',city:'Espoo',lat:60.2189,lon:24.8139,gpsRadius:200,status:'active'});
+  db.insert('sites',{name:'Espoo Renovointi',customerId:c3.id,address:'Piispansilta 11',city:'Espoo',lat:60.2122,lon:24.8025,gpsRadius:200,status:'done'});
+  var workers=[w1,w2,w3,w4], sites=[s1,s2,s3,s4,s5];
+  var cats=['installation','demolition','cleaning','transport','other'];
+  var stats=['approved','approved','submitted','approved','approved'];
+  var hours=[7,8,6,9,7,8,6,7,8];
+  var offsets=[0,1,2,3,5,6,7,8,9];
+  for(var i=0;i<offsets.length;i++){
+    var dt=new Date(); dt.setDate(dt.getDate()-offsets[i]);
+    var ds=dt.toISOString().slice(0,10);
+    var h=hours[i], bk=30;
+    db.insert('entries',{workerId:workers[i%4].id,siteId:sites[i%5].id,date:ds,startTime:'07:00',endTime:'0'+(7+h)+':00',breakMinutes:bk,netMs:(h*60-bk)*60000,category:cats[i%5],notes:'',status:stats[i%5]});
+  }
+}
+
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+function esc(v) { return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtMs(ms) { var m=Math.floor(ms/60000),h=Math.floor(m/60); return h+':'+(m%60<10?'0':'')+(m%60); }
+function fmtDate(d) { if(!d) return ''; var p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; }
+
+function toast(msg,type) {
+  var c=document.getElementById('toastContainer');
+  var t=document.createElement('div');
+  t.className='toast '+(type||'info');
+  t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},3500);
+}
+function openModal(id) { var m=document.getElementById(id); if(m) m.classList.add('open'); }
+function closeModal(id) { var m=document.getElementById(id); if(m) m.classList.remove('open'); }
+document.addEventListener('click',function(e){ if(e.target.classList.contains('modal-bg')) e.target.classList.remove('open'); });
+
+function gpsDistance(lat1,lon1,lat2,lon2) {
+  var R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function getCurrentPosition() {
+  return new Promise(function(resolve,reject){
+    if(!navigator.geolocation){reject(new Error('GPS ei tuettu'));return;}
+    navigator.geolocation.getCurrentPosition(
+      function(p){resolve({lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy});},
+      function(e){reject(e);},{enableHighAccuracy:true,timeout:10000}
+    );
+  });
+}
+var CATEGORIES={installation:'Asennus',demolition:'Purkutyö',cleaning:'Siivous',transport:'Kuljetus',material_handling:'Materiaalien käsittely',planning:'Suunnittelu',inspection:'Tarkastus',other:'Muu'};
+var STATUS_LABELS={submitted:'Lähetetty',approved:'Hyväksytty',rejected:'Hylätty'};
+
+// ══════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════
+var _session=null, _pin='';
+
+function restoreSession() {
+  try { var s=JSON.parse(sessionStorage.getItem('wt_session')||'null'); if(s){_session=s;return true;} } catch(e){}
+  return false;
+}
+function saveSession(s) { _session=s; sessionStorage.setItem('wt_session',JSON.stringify(s)); }
+
+function populateWorkerSelect() {
+  var sel=document.getElementById('loginWorkerSel');
+  var workers=db.list('workers',function(w){return w.active!==false;});
+  sel.innerHTML='<option value="">– Valitse käyttäjä –</option>'+workers.map(function(w){return '<option value="'+w.id+'">'+esc(w.name)+'</option>';}).join('');
+}
+
+function appendPin(d) {
+  if(_pin.length>=4) return;
+  _pin+=d;
+  document.getElementById('pinDisplay').textContent='●'.repeat(_pin.length)+'–'.repeat(4-_pin.length);
+}
+function clearPin() {
+  _pin='';
+  document.getElementById('pinDisplay').textContent='––––';
+  document.getElementById('loginErr').textContent='';
+}
+function handleLogin() {
+  var wid=document.getElementById('loginWorkerSel').value;
+  if(!wid){document.getElementById('loginErr').textContent='Valitse käyttäjä.';return;}
+  if(_pin.length<4){document.getElementById('loginErr').textContent='Syötä 4-numeroinen PIN.';return;}
+  var w=db.get('workers',wid);
+  if(!w||w.pin!==_pin){document.getElementById('loginErr').textContent='Väärä PIN.';clearPin();return;}
+  saveSession({workerId:w.id,workerName:w.name,role:w.role});
+  showApp();
+}
+function logout() {
+  _session=null; sessionStorage.removeItem('wt_session'); clearPin();
+  document.getElementById('loginErr').textContent='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('loginScreen').style.display='flex';
+}
+function showApp() {
+  document.getElementById('loginScreen').style.display='none';
+  var app=document.getElementById('app');
+  app.style.display='flex';
+  app.classList.add('visible');
+  document.getElementById('headerUser').textContent=_session.workerName||'';
+  var adm=_session.role==='admin';
+  document.getElementById('adminSep').style.display=adm?'':'none';
+  document.getElementById('adminLabel').style.display=adm?'':'none';
+  document.getElementById('navWorkers').style.display=adm?'':'none';
+  document.getElementById('navCustomers').style.display=adm?'':'none';
+  document.getElementById('navSites').style.display=adm?'':'none';
+  switchPanel('home');
+  resumeTimerIfActive();
+}
+
+// ══════════════════════════════════════════════════
+// PANEL ROUTING
+// ══════════════════════════════════════════════════
+var PANELS=['home','timer','calendar','workers','customers','sites','reports','settings'];
+var activePanel='home';
+function switchPanel(name,arg) {
+  activePanel=name;
+  PANELS.forEach(function(p){
+    var el=document.getElementById('panel-'+p);
+    if(el) el.classList.toggle('active',p===name);
+  });
+  document.querySelectorAll('.nav-item,.bottom-nav-item').forEach(function(b){b.classList.toggle('active',b.dataset.panel===name);});
+  if(name==='home') renderHome();
+  else if(name==='timer') renderTimer();
+  else if(name==='calendar') renderCalendar();
+  else if(name==='workers') renderWorkers();
+  else if(name==='customers') renderCustomers();
+  else if(name==='sites') renderSites(arg||null);
+  else if(name==='reports') renderReports();
+  else if(name==='settings') renderSettings();
+}
+
+// ══════════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════════
+function renderHome() {
+  var s=_session, today=new Date().toISOString().slice(0,10);
+  var workers=db.list('workers',function(w){return w.active!==false;});
+  var sites=db.list('sites');
+  var allEntries=db.list('entries');
+  var todayE=allEntries.filter(function(e){return e.date===today;});
+  var monthStart=today.slice(0,7)+'-01';
+  var monthE=allEntries.filter(function(e){return e.date>=monthStart&&e.date<=today;});
+  var pendingE=allEntries.filter(function(e){return e.status==='submitted';});
+  var totalToday=todayE.reduce(function(a,e){return a+(e.netMs||0);},0);
+  var totalMonth=monthE.reduce(function(a,e){return a+(e.netMs||0);},0);
+  var myToday=todayE.filter(function(e){return e.workerId===s.workerId;}).reduce(function(a,e){return a+(e.netMs||0);},0);
+  var myMonth=monthE.filter(function(e){return e.workerId===s.workerId;}).reduce(function(a,e){return a+(e.netMs||0);},0);
+  var isAdm=s.role==='admin';
+  var byWorker={};
+  todayE.forEach(function(e){byWorker[e.workerId]=(byWorker[e.workerId]||0)+(e.netMs||0);});
+
+  var workerRows='';
+  workers.forEach(function(w){
+    var ms=byWorker[w.id]||0;
+    var wE=todayE.filter(function(e){return e.workerId===w.id;});
+    var sNames=[...new Set(wE.map(function(e){var si=sites.find(function(x){return x.id===e.siteId;});return si?si.name:'–';}))].join(', ');
+    workerRows+='<div class="worker-row"><div><div class="worker-name">'+esc(w.name)+'</div><div class="worker-sites">'+esc(sNames||'Ei kirjauksia')+'</div></div><div class="worker-hours'+(ms>0?' has-hours':'')+'">'+( ms>0?fmtMs(ms):'–')+'</div></div>';
+  });
+
+  var pendingRows='';
+  pendingE.slice(0,5).forEach(function(e){
+    var w=workers.find(function(x){return x.id===e.workerId;});
+    var si=sites.find(function(x){return x.id===e.siteId;});
+    pendingRows+='<div class="pending-row" onclick="openEntryDetail(\''+e.id+'\')"><div><strong>'+esc(w?w.name:'–')+'</strong> · '+esc(si?si.name:'–')+'</div><div style="font-size:.78rem;color:var(--muted)">'+e.date+' · '+fmtMs(e.netMs||0)+'</div></div>';
+  });
+
+  var html='<h2 class="panel-title">Hyvää päivää, '+esc((s.workerName||'').split(' ')[0])+'!</h2>';
+  html+='<div class="stat-row mt-3">';
+  html+='<div class="stat-box"><div class="stat-val">'+fmtMs(isAdm?totalToday:myToday)+'</div><div class="stat-lbl">Tänään</div></div>';
+  html+='<div class="stat-box"><div class="stat-val">'+fmtMs(isAdm?totalMonth:myMonth)+'</div><div class="stat-lbl">Tässä kuussa</div></div>';
+  if(isAdm){
+    var todayWorkers=new Set(todayE.map(function(e){return e.workerId;})).size;
+    html+='<div class="stat-box"><div class="stat-val">'+todayWorkers+'/'+workers.length+'</div><div class="stat-lbl">Töissä tänään</div></div>';
+    html+='<div class="stat-box'+(pendingE.length>0?' stat-warn':'')+'"><div class="stat-val">'+pendingE.length+'</div><div class="stat-lbl">Odottaa hyväksyntää</div></div>';
+  } else {
+    html+='<div class="stat-box"><div class="stat-val">'+todayE.filter(function(e){return e.workerId===s.workerId;}).length+'</div><div class="stat-lbl">Kirjauksia tänään</div></div>';
+  }
+  html+='</div>';
+  if(isAdm){
+    html+='<div class="card mt-4"><div class="card-title">Tänään töissä</div>'+workerRows+'</div>';
+    if(pendingE.length>0){
+      html+='<div class="card mt-3"><div class="card-title">⏳ Odottaa hyväksyntää ('+pendingE.length+')</div>'+pendingRows;
+      if(pendingE.length>5) html+='<div style="font-size:.8rem;color:var(--muted);padding:8px">+ '+(pendingE.length-5)+' lisää</div>';
+      html+='</div>';
+    }
+  }
+  html+='<div class="quick-actions mt-4"><button class="btn btn-green" onclick="switchPanel(\'timer\')">▶ Aloita työvuoro</button><button class="btn btn-ghost" onclick="switchPanel(\'calendar\')">📅 Kalenteri</button><button class="btn btn-ghost" onclick="switchPanel(\'reports\')">📊 Raportit</button></div>';
+  document.getElementById('panel-home').innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════════════
+var _activeShift=null, _timerInterval=null;
+function resumeTimerIfActive(){
+  try{var s=JSON.parse(sessionStorage.getItem('wt_active_shift')||'null');if(s){_activeShift=s;startTimerTick();}}catch(e){}
+}
+function startTimerTick(){
+  if(_timerInterval) clearInterval(_timerInterval);
+  _timerInterval=setInterval(function(){
+    var d=document.getElementById('timerDisplay');
+    if(d&&_activeShift) d.textContent=fmtMs(Date.now()-_activeShift.startMs);
+  },1000);
+}
+function renderTimer(){
+  var sites=db.list('sites',function(s){return s.status==='active';});
+  var customers=db.list('customers');
+  var cMap={};customers.forEach(function(c){cMap[c.id]=c.name;});
+  var isRunning=!!_activeShift;
+  var siteOpts=sites.map(function(s){return '<option value="'+s.id+'">'+esc(s.name)+' — '+esc(cMap[s.customerId]||'–')+'</option>';}).join('');
+  var catOpts=Object.keys(CATEGORIES).map(function(k){return '<option value="'+k+'">'+CATEGORIES[k]+'</option>';}).join('');
+  var html='<div class="panel-header"><h2 class="panel-title">Ajastin</h2></div>';
+  html+='<div class="card'+(isRunning?' shift-active':'')+'"><div id="timerDisplay" class="timer-display">'+(isRunning?fmtMs(Date.now()-_activeShift.startMs):'0:00')+'</div>';
+  if(!isRunning){
+    html+='<div class="form-group"><label class="form-label">Työkohde *</label><select class="inp" id="timerSite"><option value="">– Valitse kohde –</option>'+siteOpts+'</select></div>';
+    html+='<div class="form-group"><label class="form-label">Kategoria</label><select class="inp" id="timerCategory">'+catOpts+'</select></div>';
+    html+='<div class="form-group"><label class="form-label">Muistiinpanot</label><input class="inp" id="timerNotes" placeholder="Vapaaehtoinen"></div>';
+    html+='<div id="gpsStatus" class="gps-status">📡 GPS: ei tarkistettu</div>';
+    html+='<div class="btn-row mt-3"><button class="btn btn-green" onclick="startShift()">▶ Aloita vuoro</button><button class="btn btn-ghost btn-sm" onclick="detectGPS()">📍 Tarkista sijainti</button></div>';
+  } else {
+    var st=new Date(_activeShift.startMs).toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'});
+    html+='<div style="text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:12px">Kohde: <strong>'+esc(_activeShift.siteName)+'</strong><br>Aloitettu: '+st+'</div>';
+    html+='<div class="form-group"><label class="form-label">Tauko (min)</label><input class="inp" type="number" id="breakMinutes" value="30" min="0" max="480"></div>';
+    html+='<div class="btn-row mt-3"><button class="btn btn-danger" onclick="stopShift()">⏹ Lopeta vuoro</button></div>';
+  }
+  html+='</div>';
+  html+='<div class="card mt-3"><div class="card-title">Tämän päivän kirjaukset</div>'+renderTodayEntries()+'</div>';
+  document.getElementById('panel-timer').innerHTML=html;
+  if(isRunning) startTimerTick();
+}
+function renderTodayEntries(){
+  var today=new Date().toISOString().slice(0,10);
+  var entries=db.list('entries',function(e){return e.date===today&&e.workerId===_session.workerId;});
+  var sites=db.list('sites');
+  if(!entries.length) return '<p class="empty-msg">Ei kirjauksia tänään.</p>';
+  return entries.map(function(e){
+    var si=sites.find(function(x){return x.id===e.siteId;});
+    return '<div class="day-entry-row" onclick="openEntryDetail(\''+e.id+'\')"><div style="flex:1"><div style="font-weight:600;font-size:.9rem">'+esc(si?si.name:'–')+'</div><div style="font-size:.78rem;color:var(--muted)">'+(e.startTime||'')+' – '+(e.endTime||'')+' · '+(CATEGORIES[e.category]||e.category||'')+'</div></div><div style="font-weight:700;color:var(--primary)">'+fmtMs(e.netMs||0)+'</div><span class="status-badge status-'+e.status+'">'+(STATUS_LABELS[e.status]||e.status)+'</span></div>';
+  }).join('');
+}
+function detectGPS(){
+  var el=document.getElementById('gpsStatus');
+  if(el) el.textContent='📡 GPS: haetaan sijaintia...';
+  getCurrentPosition().then(function(pos){
+    if(el) el.textContent='📍 GPS: '+pos.lat.toFixed(5)+', '+pos.lon.toFixed(5)+' (±'+Math.round(pos.acc)+'m)';
+  }).catch(function(err){
+    if(el) el.textContent='⚠️ GPS virhe: '+err.message;
+  });
+}
+function startShift(){
+  var siteId=(document.getElementById('timerSite')||{}).value;
+  if(!siteId){toast('Valitse työkohde.','warn');return;}
+  var category=(document.getElementById('timerCategory')||{}).value||'other';
+  var notes=(document.getElementById('timerNotes')||{}).value||'';
+  var site=db.get('sites',siteId);
+  function doStart(){
+    _activeShift={siteId:siteId,siteName:site?site.name:'',category:category,notes:notes,startMs:Date.now(),date:new Date().toISOString().slice(0,10),startTime:new Date().toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'})};
+    sessionStorage.setItem('wt_active_shift',JSON.stringify(_activeShift));
+    toast('Vuoro aloitettu!','success');
+    renderTimer();
+  }
+  if(site&&site.lat&&site.lon){
+    getCurrentPosition().then(function(pos){
+      var dist=gpsDistance(pos.lat,pos.lon,site.lat,site.lon);
+      if(dist>(site.gpsRadius||200)){if(!confirm('⚠️ Olet '+Math.round(dist)+'m päässä kohteesta (sallittu '+(site.gpsRadius||200)+'m). Aloitetaanko silti?')) return;}
+      doStart();
+    }).catch(function(){doStart();});
+  } else { doStart(); }
+}
+function stopShift(){
+  if(!_activeShift) return;
+  var bk=parseInt((document.getElementById('breakMinutes')||{}).value||'30');
+  var endMs=Date.now(), grossMs=endMs-_activeShift.startMs, netMs=Math.max(0,grossMs-bk*60000);
+  var endTime=new Date(endMs).toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'});
+  db.insert('entries',{workerId:_session.workerId,siteId:_activeShift.siteId,date:_activeShift.date,startTime:_activeShift.startTime,endTime:endTime,breakMinutes:bk,netMs:netMs,category:_activeShift.category,notes:_activeShift.notes,status:'submitted'});
+  sessionStorage.removeItem('wt_active_shift');
+  if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}
+  _activeShift=null;
+  toast('Vuoro lopetettu. Kesto: '+fmtMs(netMs),'success');
+  renderTimer();
+}
+
+// ══════════════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════════════
+var _calView='month', _calDate=new Date(), _calFilters={workerId:'',customerId:''};
+function setCalView(v){_calView=v;renderCalendar();}
+function calNav(dir){
+  var d=new Date(_calDate);
+  if(_calView==='month') d.setMonth(d.getMonth()+dir);
+  else if(_calView==='week') d.setDate(d.getDate()+dir*7);
+  else d.setDate(d.getDate()+dir);
+  _calDate=d; renderCalendar();
+}
+function getWeekNum(d){
+  var dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  dt.setUTCDate(dt.getUTCDate()+4-(dt.getUTCDay()||7));
+  var y=new Date(Date.UTC(dt.getUTCFullYear(),0,1));
+  return Math.ceil((((dt-y)/86400000)+1)/7);
+}
+function calEntries(){
+  var s=_session;
+  return db.list('entries',function(e){
+    if(s.role!=='admin'&&e.workerId!==s.workerId) return false;
+    if(_calFilters.workerId&&e.workerId!==_calFilters.workerId) return false;
+    if(_calFilters.customerId){var si=db.get('sites',e.siteId);if(!si||si.customerId!==_calFilters.customerId) return false;}
+    return true;
+  });
+}
+function renderCalendar(){
+  var workers=db.list('workers',function(w){return w.active!==false;});
+  var customers=db.list('customers',function(c){return c.active!==false;});
+  var isAdm=_session.role==='admin';
+  var label='';
+  if(_calView==='month') label=_calDate.toLocaleDateString('fi-FI',{month:'long',year:'numeric'});
+  else if(_calView==='week') label='Vk '+getWeekNum(_calDate);
+  else label=_calDate.toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'});
+
+  var filterHtml='';
+  if(isAdm){
+    filterHtml='<div class="filter-row"><select class="inp inp-sm" onchange="_calFilters.workerId=this.value;drawCal()" style="max-width:160px"><option value="">Kaikki työntekijät</option>'+
+      workers.map(function(w){return '<option value="'+w.id+'" '+((_calFilters.workerId===w.id)?'selected':'')+'>'+esc(w.name)+'</option>';}).join('')+'</select>'+
+      '<select class="inp inp-sm" onchange="_calFilters.customerId=this.value;drawCal()" style="max-width:160px"><option value="">Kaikki asiakkaat</option>'+
+      customers.map(function(c){return '<option value="'+c.id+'" '+((_calFilters.customerId===c.id)?'selected':'')+'>'+esc(c.name)+'</option>';}).join('')+'</select></div>';
+  }
+
+  document.getElementById('panel-calendar').innerHTML=
+    '<div class="panel-header"><h2 class="panel-title">Kalenteri</h2></div>'+
+    '<div class="cal-nav"><button class="cal-nav-btn" onclick="calNav(-1)">&#8249;</button><strong>'+esc(label)+'</strong><button class="cal-nav-btn" onclick="calNav(1)">&#8250;</button></div>'+
+    '<div class="view-tabs" style="margin-bottom:12px">'+
+    '<button class="view-tab '+(_calView==='day'?'active':'')+'" onclick="setCalView(\'day\')">Päivä</button>'+
+    '<button class="view-tab '+(_calView==='week'?'active':'')+'" onclick="setCalView(\'week\')">Viikko</button>'+
+    '<button class="view-tab '+(_calView==='month'?'active':'')+'" onclick="setCalView(\'month\')">Kuukausi</button>'+
+    '</div>'+filterHtml+'<div id="calBody"></div>';
+  drawCal();
+}
+function drawCal(){
+  var body=document.getElementById('calBody');
+  if(!body) return;
+  var entries=calEntries();
+  var workers=db.list('workers'), sites=db.list('sites');
+  var wMap={}, sMap={};
+  workers.forEach(function(w){wMap[w.id]=w.name;});
+  sites.forEach(function(s){sMap[s.id]=s.name;});
+
+  if(_calView==='day'){
+    var ds=_calDate.toISOString().slice(0,10);
+    var de=entries.filter(function(e){return e.date===ds;});
+    if(!de.length){body.innerHTML='<p class="empty-msg">Ei kirjauksia.</p>';return;}
+    body.innerHTML=de.map(function(e){
+      return '<div class="day-entry-row" onclick="openEntryDetail(\''+e.id+'\')"><div style="flex:1"><div style="font-weight:600">'+esc(wMap[e.workerId]||'–')+'</div><div style="font-size:.78rem;color:var(--muted)">'+esc(sMap[e.siteId]||'–')+' · '+(e.startTime||'')+'–'+(e.endTime||'')+'</div></div><div style="font-weight:700">'+fmtMs(e.netMs||0)+'</div><span class="status-badge status-'+e.status+'">'+(STATUS_LABELS[e.status]||e.status)+'</span></div>';
+    }).join('');
+  } else if(_calView==='week'){
+    var dow=(_calDate.getDay()+6)%7;
+    var monday=new Date(_calDate); monday.setDate(_calDate.getDate()-dow);
+    var days=[]; for(var i=0;i<7;i++){var d2=new Date(monday);d2.setDate(monday.getDate()+i);days.push(d2);}
+    var todayStr=new Date().toISOString().slice(0,10);
+    body.innerHTML='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">'+days.map(function(d){
+      var ds2=d.toISOString().slice(0,10);
+      var de2=entries.filter(function(e){return e.date===ds2;});
+      var isToday=ds2===todayStr;
+      var total=de2.reduce(function(a,e){return a+(e.netMs||0);},0);
+      return '<div style="background:var(--card);border-radius:8px;padding:8px;border:'+(isToday?'2px solid var(--primary)':'1px solid var(--border)')+'">'+
+        '<div style="font-weight:600;font-size:.78rem;color:'+(isToday?'var(--primary)':'var(--muted)')+';margin-bottom:4px">'+d.toLocaleDateString('fi-FI',{weekday:'short',day:'numeric'})+'</div>'+
+        de2.map(function(e){return '<div class="cal-entry-chip" onclick="openEntryDetail(\''+e.id+'\')">'+esc(sMap[e.siteId]||'–')+'</div>';}).join('')+
+        (de2.length?'<div style="font-size:.75rem;font-weight:700;color:var(--primary);margin-top:4px">'+fmtMs(total)+'</div>':'')+'</div>';
+    }).join('')+'</div>';
+  } else {
+    var y=_calDate.getFullYear(), m=_calDate.getMonth();
+    var firstDay=new Date(y,m,1), lastDay=new Date(y,m+1,0);
+    var startDow=(firstDay.getDay()+6)%7;
+    var todayStr2=new Date().toISOString().slice(0,10);
+    var dayNames=['Ma','Ti','Ke','To','Pe','La','Su'];
+    var html='<div class="cal-grid" style="grid-template-columns:repeat(7,1fr)">';
+    dayNames.forEach(function(d){html+='<div class="cal-day-header">'+d+'</div>';});
+    for(var i2=0;i2<startDow;i2++) html+='<div class="cal-cell other-month"></div>';
+    for(var d3=1;d3<=lastDay.getDate();d3++){
+      var ds3=y+'-'+(m+1<10?'0':'')+(m+1)+'-'+(d3<10?'0':'')+d3;
+      var de3=entries.filter(function(e){return e.date===ds3;});
+      var isToday2=ds3===todayStr2;
+      html+='<div class="cal-cell'+(isToday2?' today':'')+'"><div class="cal-date" style="'+(isToday2?'color:var(--primary);font-weight:700':'')+'">'+(d3)+'</div>'+
+        de3.slice(0,3).map(function(e){return '<div class="cal-entry-chip" onclick="openEntryDetail(\''+e.id+'\')">'+esc(sMap[e.siteId]||'–')+'</div>';}).join('')+
+        (de3.length>3?'<div style="font-size:.65rem;color:var(--muted)">+'+(de3.length-3)+'</div>':'')+'</div>';
+    }
+    html+='</div>';
+    body.innerHTML=html;
+  }
+}
+
+function openEntryDetail(id){
+  var e=db.get('entries',id); if(!e) return;
+  var site=db.get('sites',e.siteId);
+  var worker=db.get('workers',e.workerId);
+  var customer=site?db.get('customers',site.customerId):null;
+  var isAdm=_session.role==='admin';
+  document.getElementById('entryDetailBody').innerHTML=
+    '<table style="width:100%;font-size:.88rem;border-collapse:collapse">'+
+    '<tr><td style="padding:6px 0;color:var(--muted);width:40%">Päivämäärä</td><td style="font-weight:600">'+fmtDate(e.date)+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Työntekijä</td><td>'+esc(worker?worker.name:'–')+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Asiakas</td><td>'+esc(customer?customer.name:'–')+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Kohde</td><td>'+esc(site?site.name:'–')+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Aika</td><td>'+(e.startTime||'')+'–'+(e.endTime||'')+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Tauko</td><td>'+(e.breakMinutes||0)+' min</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Nettotunnit</td><td style="font-weight:700;color:var(--primary)">'+fmtMs(e.netMs||0)+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Kategoria</td><td>'+(CATEGORIES[e.category]||e.category||'–')+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Tila</td><td><span class="status-badge status-'+e.status+'">'+(STATUS_LABELS[e.status]||e.status)+'</span></td></tr>'+
+    (e.notes?'<tr><td style="padding:6px 0;color:var(--muted)">Muistiinpanot</td><td>'+esc(e.notes)+'</td></tr>':'')+
+    '</table>';
+  var footer=document.getElementById('entryDetailFooter');
+  if(isAdm&&e.status==='submitted'){
+    footer.innerHTML='<button class="btn btn-danger btn-sm" onclick="deleteEntry(\''+e.id+'\')">Poista</button><button class="btn btn-warn btn-sm" onclick="rejectEntry(\''+e.id+'\')">Hylkää</button><button class="btn btn-green btn-sm" onclick="approveEntry(\''+e.id+'\')">Hyväksy</button>';
+  } else if(isAdm){
+    footer.innerHTML='<button class="btn btn-danger btn-sm" onclick="deleteEntry(\''+e.id+'\')">Poista</button><button class="btn btn-ghost btn-sm" onclick="closeModal(\'entryDetailModal\')">Sulje</button>';
+  } else {
+    footer.innerHTML='<button class="btn btn-ghost btn-sm" onclick="closeModal(\'entryDetailModal\')">Sulje</button>';
+  }
+  openModal('entryDetailModal');
+}
+function approveEntry(id){db.update('entries',id,{status:'approved'});toast('Kirjaus hyväksytty.','success');closeModal('entryDetailModal');refreshPanels();}
+function rejectEntry(id){db.update('entries',id,{status:'rejected'});toast('Kirjaus hylätty.','warn');closeModal('entryDetailModal');refreshPanels();}
+function deleteEntry(id){if(!confirm('Poistetaanko kirjaus pysyvästi?')) return;db.remove('entries',id);toast('Poistettu.','info');closeModal('entryDetailModal');refreshPanels();}
+function refreshPanels(){
+  if(activePanel==='home') renderHome();
+  else if(activePanel==='timer') renderTimer();
+  else if(activePanel==='calendar') renderCalendar();
+  else if(activePanel==='reports') renderReports();
+}
+
+// ══════════════════════════════════════════════════
+// WORKERS
+// ══════════════════════════════════════════════════
+var _editWorkerId=null;
+function renderWorkers(){
+  var workers=db.list('workers');
+  document.getElementById('panel-workers').innerHTML=
+    '<div class="panel-header"><h2 class="panel-title">Työntekijät</h2><button class="btn btn-primary btn-sm" onclick="openWorkerForm()">+ Lisää</button></div>'+
+    '<div class="search-row"><input class="inp inp-sm" placeholder="🔍 Hae nimellä..." oninput="filterWorkers(this.value)"></div>'+
+    '<div id="workersTable" class="card" style="padding:0;overflow:hidden">'+workersTable(workers)+'</div>';
+}
+function workersTable(workers){
+  if(!workers.length) return '<p class="empty-msg">Ei työntekijöitä.</p>';
+  return '<table class="data-table"><thead><tr><th>Nimi</th><th>Rooli</th><th>Sähköposti</th><th>€/h</th><th>Tila</th><th></th></tr></thead><tbody>'+
+    workers.map(function(w){
+      return '<tr class="'+(w.active===false?'row-inactive':'')+'"><td><strong>'+esc(w.name)+'</strong></td><td><span class="role-badge role-'+w.role+'">'+(w.role==='admin'?'Admin':'Työntekijä')+'</span></td><td>'+esc(w.email||'')+'</td><td>'+(w.hourlyRate?w.hourlyRate+'€':'–')+'</td><td><span class="status-badge '+(w.active!==false?'status-approved':'status-rejected')+'">'+(w.active!==false?'Aktiivinen':'Ei aktiivinen')+'</span></td><td class="row-actions"><button class="icon-btn" onclick="openWorkerForm(\''+w.id+'\')">✏️</button><button class="icon-btn" onclick="toggleWorkerActive(\''+w.id+'\','+(w.active!==false)+')">'+(w.active!==false?'🚫':'✅')+'</button></td></tr>';
+    }).join('')+'</tbody></table>';
+}
+function filterWorkers(q){
+  var workers=db.list('workers',function(w){return w.name.toLowerCase().includes(q.toLowerCase());});
+  var t=document.getElementById('workersTable'); if(t) t.innerHTML=workersTable(workers);
+}
+function openWorkerForm(id){
+  id=id||null; _editWorkerId=id;
+  document.getElementById('workerModalTitle').textContent=id?'Muokkaa työntekijää':'Uusi työntekijä';
+  var w=id?db.get('workers',id):{};
+  ['name','email','phone','role','pin','hourlyRate','overtimeMultiplier'].forEach(function(k){
+    var inp=document.getElementById('wf_'+k); if(inp) inp.value=w[k]!=null?w[k]:'';
+  });
+  if(!id){var om=document.getElementById('wf_overtimeMultiplier');if(om)om.value='1.5';}
+  openModal('workerModal');
+}
+function saveWorker(){
+  var data={};
+  ['name','email','phone','role','pin','hourlyRate','overtimeMultiplier'].forEach(function(k){var inp=document.getElementById('wf_'+k);data[k]=inp?inp.value.trim():'';});
+  if(!data.name){toast('Nimi on pakollinen.','warn');return;}
+  data.hourlyRate=parseFloat(data.hourlyRate)||0;
+  data.overtimeMultiplier=parseFloat(data.overtimeMultiplier)||1.5;
+  if(_editWorkerId){db.update('workers',_editWorkerId,data);toast('Päivitetty.','success');}
+  else{db.insert('workers',Object.assign({},data,{active:true}));toast('Lisätty.','success');}
+  closeModal('workerModal');renderWorkers();
+}
+function toggleWorkerActive(id,cur){db.update('workers',id,{active:!cur});toast(cur?'Deaktivoitu.':'Aktivoitu.','info');renderWorkers();}
+
+// ══════════════════════════════════════════════════
+// CUSTOMERS
+// ══════════════════════════════════════════════════
+var _editCustomerId=null;
+function renderCustomers(){
+  var customers=db.list('customers');
+  document.getElementById('panel-customers').innerHTML=
+    '<div class="panel-header"><h2 class="panel-title">Asiakkaat</h2><button class="btn btn-primary btn-sm" onclick="openCustomerForm()">+ Lisää</button></div>'+
+    '<div class="search-row"><input class="inp inp-sm" placeholder="🔍 Hae nimellä..." oninput="filterCustomers(this.value)"></div>'+
+    '<div id="customersTable" class="card" style="padding:0;overflow:hidden">'+customersTable(customers)+'</div>';
+}
+function customersTable(customers){
+  if(!customers.length) return '<p class="empty-msg">Ei asiakkaita.</p>';
+  return '<table class="data-table"><thead><tr><th>Yritys</th><th>Yhteyshenkilö</th><th>Sähköposti</th><th>Kaupunki</th><th></th></tr></thead><tbody>'+
+    customers.map(function(c){return '<tr><td><strong>'+esc(c.name)+'</strong></td><td>'+esc(c.contactPerson||'')+'</td><td>'+esc(c.email||'')+'</td><td>'+esc(c.city||'')+'</td><td class="row-actions"><button class="icon-btn" onclick="openCustomerForm(\''+c.id+'\')">✏️</button><button class="icon-btn" onclick="switchPanel(\'sites\',\''+c.id+'\')">📍</button></td></tr>';}).join('')+'</tbody></table>';
+}
+function filterCustomers(q){
+  var customers=db.list('customers',function(c){return c.name.toLowerCase().includes(q.toLowerCase())||(c.contactPerson||'').toLowerCase().includes(q.toLowerCase());});
+  var t=document.getElementById('customersTable'); if(t) t.innerHTML=customersTable(customers);
+}
+function openCustomerForm(id){
+  id=id||null; _editCustomerId=id;
+  document.getElementById('customerModalTitle').textContent=id?'Muokkaa asiakasta':'Uusi asiakas';
+  var c=id?db.get('customers',id):{};
+  ['name','contactPerson','email','phone','address','city','businessId','notes'].forEach(function(k){var inp=document.getElementById('cf_'+k);if(inp) inp.value=c[k]!=null?c[k]:'';});
+  openModal('customerModal');
+}
+function saveCustomer(){
+  var data={};
+  ['name','contactPerson','email','phone','address','city','businessId','notes'].forEach(function(k){var inp=document.getElementById('cf_'+k);data[k]=inp?inp.value.trim():'';});
+  if(!data.name){toast('Yrityksen nimi on pakollinen.','warn');return;}
+  if(_editCustomerId){db.update('customers',_editCustomerId,data);toast('Päivitetty.','success');}
+  else{db.insert('customers',Object.assign({},data,{active:true}));toast('Lisätty.','success');}
+  closeModal('customerModal');renderCustomers();
+}
+
+// ══════════════════════════════════════════════════
+// SITES
+// ══════════════════════════════════════════════════
+var _editSiteId=null;
+function renderSites(pre){
+  var sites=db.list('sites'), customers=db.list('customers');
+  var custMap={};customers.forEach(function(c){custMap[c.id]=c.name;});
+  document.getElementById('panel-sites').innerHTML=
+    '<div class="panel-header"><h2 class="panel-title">Työkohteet</h2><button class="btn btn-primary btn-sm" onclick="openSiteForm()">+ Lisää</button></div>'+
+    '<div class="filter-row">'+
+    '<input class="inp inp-sm" id="siteSearchInp" placeholder="🔍 Hae..." oninput="filterSites(this.value)">'+
+    '<select class="inp inp-sm" id="siteFilterCust" onchange="filterSites(document.getElementById(\'siteSearchInp\').value)" style="max-width:180px"><option value="">Kaikki asiakkaat</option>'+
+    customers.map(function(c){return '<option value="'+c.id+'" '+(c.id===pre?'selected':'')+'>'+esc(c.name)+'</option>';}).join('')+'</select>'+
+    '<select class="inp inp-sm" id="siteFilterStatus" onchange="filterSites(document.getElementById(\'siteSearchInp\').value)" style="max-width:130px"><option value="">Kaikki tilat</option><option value="active">Aktiivinen</option><option value="done">Valmis</option></select>'+
+    '</div><div id="sitesTable" class="card" style="padding:0;overflow:hidden">'+sitesTable(sites,custMap)+'</div>';
+}
+function sitesTable(sites,custMap){
+  if(!sites.length) return '<p class="empty-msg">Ei työkohteita.</p>';
+  return '<table class="data-table"><thead><tr><th>Kohde</th><th>Asiakas</th><th>Kaupunki</th><th>GPS</th><th>Tila</th><th></th></tr></thead><tbody>'+
+    sites.map(function(s){return '<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+esc(custMap[s.customerId]||'–')+'</td><td>'+esc(s.city||'')+'</td><td>'+(s.lat?'📍 ±'+(s.gpsRadius||200)+'m':'–')+'</td><td><span class="status-badge '+(s.status==='active'?'status-approved':'status-rejected')+'">'+(s.status==='active'?'Aktiivinen':'Valmis')+'</span></td><td class="row-actions"><button class="icon-btn" onclick="openSiteForm(\''+s.id+'\')">✏️</button><button class="icon-btn" onclick="toggleSiteStatus(\''+s.id+'\',\''+s.status+'\')">'+(s.status==='active'?'✅':'🔄')+'</button></td></tr>';}).join('')+'</tbody></table>';
+}
+function filterSites(q){
+  var custId=(document.getElementById('siteFilterCust')||{}).value||'';
+  var statusV=(document.getElementById('siteFilterStatus')||{}).value||'';
+  var sites=db.list('sites',function(s){
+    var mQ=!q||s.name.toLowerCase().includes(q.toLowerCase())||(s.city||'').toLowerCase().includes(q.toLowerCase());
+    return mQ&&(!custId||s.customerId===custId)&&(!statusV||s.status===statusV);
+  });
+  var customers=db.list('customers'), custMap={};customers.forEach(function(c){custMap[c.id]=c.name;});
+  var t=document.getElementById('sitesTable'); if(t) t.innerHTML=sitesTable(sites,custMap);
+}
+function openSiteForm(id){
+  id=id||null; _editSiteId=id;
+  var customers=db.list('customers',function(c){return c.active!==false;});
+  var custSel=document.getElementById('sf_customerId');
+  if(custSel) custSel.innerHTML='<option value="">– Asiakas –</option>'+customers.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>';}).join('');
+  document.getElementById('siteModalTitle').textContent=id?'Muokkaa kohdetta':'Uusi työkohde';
+  var s=id?db.get('sites',id):{};
+  ['name','customerId','address','city','lat','lon','gpsRadius','status','notes'].forEach(function(k){var inp=document.getElementById('sf_'+k);if(inp) inp.value=s[k]!=null?s[k]:'';});
+  if(!id){var sr=document.getElementById('sf_gpsRadius');if(sr)sr.value='200';var ss=document.getElementById('sf_status');if(ss)ss.value='active';}
+  openModal('siteModal');
+}
+function saveSite(){
+  var data={};
+  ['name','customerId','address','city','lat','lon','gpsRadius','status','notes'].forEach(function(k){var inp=document.getElementById('sf_'+k);data[k]=inp?inp.value.trim():'';});
+  if(!data.name){toast('Kohteen nimi on pakollinen.','warn');return;}
+  if(!data.customerId){toast('Valitse asiakas.','warn');return;}
+  data.lat=parseFloat(data.lat)||null; data.lon=parseFloat(data.lon)||null; data.gpsRadius=parseInt(data.gpsRadius)||200;
+  if(_editSiteId){db.update('sites',_editSiteId,data);toast('Päivitetty.','success');}
+  else{db.insert('sites',data);toast('Kohde lisätty.','success');}
+  closeModal('siteModal');renderSites();
+}
+function toggleSiteStatus(id,cur){
+  var next=cur==='active'?'done':'active';
+  db.update('sites',id,{status:next});toast(next==='active'?'Aktivoitu.':'Merkitty valmiiksi.','info');renderSites();
+}
+
+// ══════════════════════════════════════════════════
+// REPORTS
+// ══════════════════════════════════════════════════
+function renderReports(){
+  var workers=db.list('workers',function(w){return w.active!==false;});
+  var customers=db.list('customers',function(c){return c.active!==false;});
+  var sites=db.list('sites');
+  var today=new Date().toISOString().slice(0,10);
+  var monthStart=today.slice(0,7)+'-01';
+  var isAdm=_session.role==='admin';
+  document.getElementById('panel-reports').innerHTML=
+    '<div class="panel-header"><h2 class="panel-title">Raportit</h2></div>'+
+    '<div class="card"><div class="card-title">Suodattimet</div>'+
+    '<div class="form-row"><div class="form-group"><label class="form-label">Alkaen</label><input class="inp" type="date" id="rFrom" value="'+monthStart+'"></div><div class="form-group"><label class="form-label">Päättyen</label><input class="inp" type="date" id="rTo" value="'+today+'"></div></div>'+
+    (isAdm?'<div class="form-row"><div class="form-group"><label class="form-label">Työntekijä</label><select class="inp" id="rWorker"><option value="">Kaikki</option>'+workers.map(function(w){return '<option value="'+w.id+'">'+esc(w.name)+'</option>';}).join('')+'</select></div><div class="form-group"><label class="form-label">Asiakas</label><select class="inp" id="rCustomer"><option value="">Kaikki</option>'+customers.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>';}).join('')+'</select></div></div>':'')+
+    '<div class="form-row"><div class="form-group"><label class="form-label">Kohde</label><select class="inp" id="rSite"><option value="">Kaikki</option>'+sites.map(function(s){return '<option value="'+s.id+'">'+esc(s.name)+'</option>';}).join('')+'</select></div><div class="form-group"><label class="form-label">Tila</label><select class="inp" id="rStatus"><option value="">Kaikki</option><option value="submitted">Lähetetty</option><option value="approved">Hyväksytty</option><option value="rejected">Hylätty</option></select></div></div>'+
+    '<div class="btn-row"><button class="btn btn-primary" onclick="runReport()">🔍 Hae</button><button class="btn btn-ghost" onclick="exportCSV()">⬇ CSV</button><button class="btn btn-ghost" onclick="exportPDF()">🖨 PDF</button></div></div>'+
+    '<div id="reportResults" class="mt-3"></div>';
+}
+function getReportEntries(){
+  var from=(document.getElementById('rFrom')||{}).value||'';
+  var to=(document.getElementById('rTo')||{}).value||'';
+  var wid=(document.getElementById('rWorker')||{}).value||'';
+  var cid=(document.getElementById('rCustomer')||{}).value||'';
+  var sid=(document.getElementById('rSite')||{}).value||'';
+  var st=(document.getElementById('rStatus')||{}).value||'';
+  var s=_session;
+  return db.list('entries',function(e){
+    if(s.role!=='admin'&&e.workerId!==s.workerId) return false;
+    if(from&&e.date<from) return false;
+    if(to&&e.date>to) return false;
+    if(wid&&e.workerId!==wid) return false;
+    if(sid&&e.siteId!==sid) return false;
+    if(st&&e.status!==st) return false;
+    if(cid){var si=db.get('sites',e.siteId);if(!si||si.customerId!==cid) return false;}
+    return true;
+  });
+}
+function runReport(){
+  var entries=getReportEntries();
+  var workers=db.list('workers'),sites=db.list('sites'),customers=db.list('customers');
+  var wMap={},sMap={},cMap={},sCust={};
+  workers.forEach(function(w){wMap[w.id]=w.name;}); sites.forEach(function(s){sMap[s.id]=s.name;sCust[s.id]=s.customerId;}); customers.forEach(function(c){cMap[c.id]=c.name;});
+  var totalMs=entries.reduce(function(a,e){return a+(e.netMs||0);},0);
+  var stdMs=8*3600000,regularMs=0,overtimeMs=0,byWD={};
+  entries.forEach(function(e){var k=e.workerId+'|'+e.date;byWD[k]=(byWD[k]||0)+(e.netMs||0);});
+  Object.values(byWD).forEach(function(ms){regularMs+=Math.min(ms,stdMs);overtimeMs+=Math.max(0,ms-stdMs);});
+  var div=document.getElementById('reportResults');
+  div.innerHTML='<div class="report-summary">'+
+    '<div class="report-stat"><div class="val">'+entries.length+'</div><div class="lbl">Kirjaukset</div></div>'+
+    '<div class="report-stat"><div class="val">'+fmtMs(totalMs)+'</div><div class="lbl">Yhteensä</div></div>'+
+    '<div class="report-stat"><div class="val">'+fmtMs(regularMs)+'</div><div class="lbl">Normaali</div></div>'+
+    '<div class="report-stat"><div class="val">'+fmtMs(overtimeMs)+'</div><div class="lbl">Ylityö</div></div>'+
+    '</div><div class="card" style="padding:0;overflow:hidden"><table class="data-table"><thead><tr><th>Pvm</th><th>Työntekijä</th><th>Asiakas</th><th>Kohde</th><th>Aika</th><th>Tuntia</th><th>Tila</th></tr></thead><tbody>'+
+    entries.sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(e){
+      return '<tr><td>'+fmtDate(e.date)+'</td><td>'+esc(wMap[e.workerId]||'–')+'</td><td>'+esc(cMap[sCust[e.siteId]]||'–')+'</td><td>'+esc(sMap[e.siteId]||'–')+'</td><td style="white-space:nowrap">'+(e.startTime||'')+'–'+(e.endTime||'')+'</td><td style="font-weight:600">'+fmtMs(e.netMs||0)+'</td><td><span class="status-badge status-'+e.status+'">'+(STATUS_LABELS[e.status]||e.status)+'</span></td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+function exportCSV(){
+  var entries=getReportEntries();
+  var workers=db.list('workers'),sites=db.list('sites'),customers=db.list('customers');
+  var wMap={},sData={},cMap={};
+  workers.forEach(function(w){wMap[w.id]=w.name;}); sites.forEach(function(s){sData[s.id]={name:s.name,cid:s.customerId};}); customers.forEach(function(c){cMap[c.id]=c.name;});
+  var rows=[['Päivämäärä','Työntekijä','Asiakas','Kohde','Alkoi','Päättyi','Tauko (min)','Nettotunnit','Kategoria','Tila']];
+  entries.forEach(function(e){var sd=sData[e.siteId]||{};rows.push([e.date,wMap[e.workerId]||'',cMap[sd.cid]||'',sd.name||'',e.startTime||'',e.endTime||'',e.breakMinutes||0,((e.netMs||0)/3600000).toFixed(2),CATEGORIES[e.category]||e.category||'',e.status||'']);});
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='raportti_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+function exportPDF(){
+  var entries=getReportEntries();
+  if(!entries.length){toast('Ei tuloksia tulostettavaksi.','warn');return;}
+  var workers=db.list('workers'),sites=db.list('sites'),customers=db.list('customers');
+  var wMap={},sData={},cMap={};
+  workers.forEach(function(w){wMap[w.id]=w.name;}); sites.forEach(function(s){sData[s.id]={name:s.name,cid:s.customerId};}); customers.forEach(function(c){cMap[c.id]=c.name;});
+  var totalMs=entries.reduce(function(a,e){return a+(e.netMs||0);},0);
+  var from=(document.getElementById('rFrom')||{}).value||'', to=(document.getElementById('rTo')||{}).value||'';
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Raportti</title><style>body{font-family:sans-serif;padding:24px;font-size:12px}h1{font-size:18px;color:#1B4332}table{width:100%;border-collapse:collapse;margin-top:16px}th{background:#1B4332;color:#fff;padding:6px 8px;text-align:left}td{padding:6px 8px;border-bottom:1px solid #ddd}</style></head><body>'+
+    '<h1>🏗️ Työajanseuranta — Raportti</h1><p>Jakso: '+fmtDate(from)+' – '+fmtDate(to)+' | Kirjaukset: '+entries.length+' | Yhteensä: '+fmtMs(totalMs)+'</p>'+
+    '<table><thead><tr><th>Pvm</th><th>Työntekijä</th><th>Asiakas</th><th>Kohde</th><th>Aika</th><th>Tuntia</th><th>Tila</th></tr></thead><tbody>'+
+    entries.sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(e){var sd=sData[e.siteId]||{};return '<tr><td>'+fmtDate(e.date)+'</td><td>'+esc(wMap[e.workerId]||'')+'</td><td>'+esc(cMap[sd.cid]||'')+'</td><td>'+esc(sd.name||'')+'</td><td>'+(e.startTime||'')+'–'+(e.endTime||'')+'</td><td>'+fmtMs(e.netMs||0)+'</td><td>'+(e.status||'')+'</td></tr>';}).join('') +
+    '</tbody></table><p style="font-weight:700;margin-top:12px">Kokonaistunnit: '+fmtMs(totalMs)+'</p></body></html>');
+  win.document.close(); setTimeout(function(){win.print();},400);
+}
+
+// ══════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════
+function renderSettings(){
+  document.getElementById('panel-settings').innerHTML=
+    '<div class="panel-header"><h2 class="panel-title">Asetukset</h2></div>'+
+    '<div class="card mt-3"><div class="card-title">Tiedot</div><p style="font-size:.85rem;color:var(--muted)">Kaikki tiedot tallennetaan selaimesi localStorage-muistiin.</p>'+
+    '<div class="btn-row mt-3"><button class="btn btn-ghost" onclick="exportData()">⬇ Varmuuskopioi JSON</button><label class="btn btn-ghost" style="cursor:pointer">⬆ Palauta JSON<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label></div></div>'+
+    '<div class="card mt-3"><div class="card-title">Demo-data</div><p style="font-size:.85rem;color:var(--muted)">Nollaa kaikki data ja lataa alkuperäinen demo-data uudelleen.</p><div class="btn-row mt-3"><button class="btn btn-danger" onclick="resetToDemo()">⚠️ Nollaa demo-data</button></div></div>'+
+    '<div class="card mt-3"><div class="card-title">Versio</div><p style="font-size:.8rem;color:var(--muted)">Työajanseuranta Platform v1.0.0<br>Admin: Matti Virtanen PIN 1234 | Työntekijät PIN 0000</p></div>';
+}
+function exportData(){
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(db.export(),null,2)],{type:'application/json'}));
+  a.download='tyoajanseuranta_backup_'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+}
+function importData(event){
+  var file=event.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{var snap=JSON.parse(e.target.result);if(!confirm('Tämä korvaa kaiken nykyisen datan. Jatketaanko?')) return;db.import(snap);toast('Data palautettu.','success');location.reload();}
+    catch(err){toast('Tiedoston lukeminen epäonnistui.','error');}
+  };
+  reader.readAsText(file);
+}
+function resetToDemo(){
+  if(!confirm('⚠️ Kaikki data poistetaan ja demo-data ladataan uudelleen. Jatketaanko?')) return;
+  db.resetAll(); seedIfEmpty(); toast('Demo-data palautettu.','success'); switchPanel('home');
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+seedIfEmpty();
+populateWorkerSelect();
+if(restoreSession()){showApp();}
+</script>
 </body>
 </html>
