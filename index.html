@@ -24,18 +24,38 @@
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
 
 /* ── Login ── */
-#loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--primary); }
-.login-box { background: #fff; border-radius: 16px; padding: 36px 32px; width: 320px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+#loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--primary); padding: 16px; }
+.login-box { background: #fff; border-radius: 16px; padding: 36px 32px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
 .login-logo { font-size: 2rem; margin-bottom: 4px; }
 .login-title { font-size: 1.3rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
-.login-sub { font-size: .85rem; color: var(--muted); margin-bottom: 20px; }
-.login-worker-sel { width: 100%; margin-bottom: 12px; }
-.pin-display { font-size: 2rem; letter-spacing: .4em; min-height: 2.5rem; color: var(--primary); margin-bottom: 16px; }
-.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.pin-btn { padding: 16px; font-size: 1.2rem; font-weight: 600; border: 1px solid var(--border); border-radius: 8px; background: #f9f9f9; cursor: pointer; transition: background .1s; }
-.pin-btn:active { background: #e8e8e8; }
-.pin-btn.danger { background: #fff0f0; color: var(--danger); }
-.login-err { color: var(--danger); font-size: .85rem; margin-top: 8px; min-height: 1.2em; }
+.login-sub { font-size: .85rem; color: var(--muted); margin-bottom: 24px; }
+
+/* Login steps */
+.login-step { display: none; }
+.login-step.active { display: block; }
+
+.phone-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.phone-prefix { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-size: .95rem; color: var(--text); font-weight: 600; white-space: nowrap; }
+.phone-inp { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; width: 100%; }
+.phone-inp:focus { outline: none; border-color: var(--primary); }
+
+.otp-box { background: #fffbe6; border: 2px solid var(--accent); border-radius: 10px; padding: 14px; margin-bottom: 16px; text-align: left; }
+.otp-demo-label { font-size: .72rem; font-weight: 700; color: var(--warn); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.otp-code { font-size: 2rem; font-weight: 700; color: var(--primary); letter-spacing: .25em; text-align: center; margin: 8px 0; }
+.otp-disclaimer { font-size: .72rem; color: var(--muted); line-height: 1.4; }
+
+.otp-input { width: 100%; padding: 12px; font-size: 1.4rem; text-align: center; letter-spacing: .3em; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
+.otp-input:focus { outline: none; border-color: var(--primary); }
+
+.login-err { color: var(--danger); font-size: .85rem; margin-top: 8px; min-height: 1.2em; text-align: left; }
+.login-back { background: none; border: none; color: var(--muted); font-size: .85rem; cursor: pointer; margin-top: 8px; text-decoration: underline; }
+
+.status-card { border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; }
+.status-card.pending { background: #fffbe6; border: 2px solid var(--accent); }
+.status-card.blocked { background: #fde8e6; border: 2px solid var(--danger); }
+.status-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.status-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+.status-text { font-size: .85rem; color: var(--muted); line-height: 1.5; }
 
 /* ── App shell ── */
 #app { display: none; min-height: 100vh; flex-direction: column; }
@@ -80,6 +100,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .btn-ghost:hover { background: var(--bg); }
 .btn-sm { padding: 6px 12px; font-size: .82rem; }
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-full { width: 100%; justify-content: center; padding: 12px; font-size: 1rem; }
 
 /* ── Forms ── */
 .inp { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: .88rem; background: #fff; }
@@ -132,11 +153,12 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 /* ── Badges ── */
 .role-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
 .role-admin { background: #fff3cd; color: #856404; }
+.role-supervisor { background: #e0e7ff; color: #3730a3; }
 .role-worker { background: #e8f5ee; color: var(--primary); }
 .status-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .72rem; font-weight: 600; }
-.status-approved { background: #e8f5ee; color: var(--success); }
-.status-rejected { background: #fde8e6; color: var(--danger); }
-.status-submitted { background: #fff3cd; color: #856404; }
+.status-approved, .status-active { background: #e8f5ee; color: var(--success); }
+.status-rejected, .status-blocked { background: #fde8e6; color: var(--danger); }
+.status-submitted, .status-pending { background: #fff3cd; color: #856404; }
 
 /* ── Modal ── */
 .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
@@ -175,6 +197,11 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .report-stat .val { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
 .report-stat .lbl { font-size: .75rem; color: var(--muted); }
 
+/* ── Workers approval ── */
+.approval-card { border: 2px solid var(--accent); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.approval-card-title { font-weight: 600; font-size: .95rem; margin-bottom: 4px; }
+.approval-card-sub { font-size: .8rem; color: var(--muted); margin-bottom: 10px; }
+
 /* ── Mobile bottom nav ── */
 .bottom-nav { display: none; }
 
@@ -189,6 +216,7 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
   .stat-row { grid-template-columns: 1fr 1fr; }
   .data-table { font-size: .78rem; }
   .data-table th, .data-table td { padding: 7px 8px; }
+  .login-box { padding: 28px 20px; }
 }
 </style>
 </head>
@@ -200,25 +228,70 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
     <div class="login-logo">🏗️</div>
     <div class="login-title">Työajanseuranta</div>
     <div class="login-sub">Rakennusalan työtuntien seuranta</div>
-    <select class="inp login-worker-sel" id="loginWorkerSel">
-      <option value="">– Valitse käyttäjä –</option>
-    </select>
-    <div class="pin-display" id="pinDisplay">––––</div>
-    <div class="pin-pad">
-      <button class="pin-btn" onclick="appendPin('1')">1</button>
-      <button class="pin-btn" onclick="appendPin('2')">2</button>
-      <button class="pin-btn" onclick="appendPin('3')">3</button>
-      <button class="pin-btn" onclick="appendPin('4')">4</button>
-      <button class="pin-btn" onclick="appendPin('5')">5</button>
-      <button class="pin-btn" onclick="appendPin('6')">6</button>
-      <button class="pin-btn" onclick="appendPin('7')">7</button>
-      <button class="pin-btn" onclick="appendPin('8')">8</button>
-      <button class="pin-btn" onclick="appendPin('9')">9</button>
-      <button class="pin-btn danger" onclick="clearPin()">✕</button>
-      <button class="pin-btn" onclick="appendPin('0')">0</button>
-      <button class="pin-btn" onclick="handleLogin()">✓</button>
+
+    <!-- Step 1: Phone number -->
+    <div class="login-step active" id="stepPhone">
+      <div style="font-size:.85rem;color:var(--muted);margin-bottom:12px;text-align:left">Syötä puhelinnumerosi kirjautuaksesi sisään.</div>
+      <div class="phone-input-row">
+        <span class="phone-prefix">🇫🇮 +358</span>
+        <input class="phone-inp" id="phoneInp" type="tel" placeholder="401234567" maxlength="15" inputmode="tel">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handlePhoneSubmit()">Jatka →</button>
+      <div class="login-err" id="phoneErr"></div>
+      <div style="margin-top:16px;padding:10px;background:var(--bg);border-radius:8px;font-size:.75rem;color:var(--muted);text-align:left">
+        🔒 <strong>Demo-tila:</strong> Kirjautuminen ei vaadi oikeaa SMS-viestiä. OTP-koodi näytetään ruudulla.
+      </div>
     </div>
-    <div class="login-err" id="loginErr"></div>
+
+    <!-- Step 2: OTP verification -->
+    <div class="login-step" id="stepOTP">
+      <div id="otpBox" class="otp-box">
+        <div class="otp-demo-label">⚠️ Demo – Ei oikeaa SMS:ää</div>
+        <div style="font-size:.8rem;color:var(--text);margin-bottom:4px">Koodisi numeroon <strong id="otpPhone"></strong>:</div>
+        <div class="otp-code" id="otpCodeDisplay">––––––</div>
+        <div class="otp-disclaimer">Oikea SMS-lähetys vaatii backend-integraation (Firebase, Twilio, Supabase). Tässä demossa koodi näytetään yllä.</div>
+      </div>
+      <input class="otp-input" id="otpInp" type="text" placeholder="000000" maxlength="6" inputmode="numeric">
+      <button class="btn btn-primary btn-full" onclick="handleOTPSubmit()">Kirjaudu sisään</button>
+      <div class="login-err" id="otpErr"></div>
+      <button class="login-back" onclick="goLoginStep('stepPhone')">← Vaihda numero</button>
+    </div>
+
+    <!-- Step 3: New user registration -->
+    <div class="login-step" id="stepRegister">
+      <div style="font-size:.85rem;color:var(--muted);margin-bottom:16px;text-align:left">Numeroa ei löydy. Luo uusi tili:</div>
+      <div class="form-group"><label class="form-label">Koko nimi *</label><input class="inp" id="regName" placeholder="Etunimi Sukunimi"></div>
+      <div class="form-group"><label class="form-label">Yritys</label><input class="inp" id="regCompany" placeholder="Rakennusliike Oy"></div>
+      <div class="form-group"><label class="form-label">Rooli</label>
+        <select class="inp" id="regRole">
+          <option value="worker">Työntekijä</option>
+          <option value="supervisor">Mestari / Työnjohtaja</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleRegister()">Rekisteröidy</button>
+      <div class="login-err" id="regErr"></div>
+      <button class="login-back" onclick="goLoginStep('stepPhone')">← Takaisin</button>
+    </div>
+
+    <!-- Step 4: Pending approval -->
+    <div class="login-step" id="stepPending">
+      <div class="status-card pending">
+        <div class="status-icon">⏳</div>
+        <div class="status-title" style="color:var(--warn)">Tili odottaa hyväksyntää</div>
+        <div class="status-text">Rekisteröitymisesi on lähetetty ylläpidolle. Saat ilmoituksen, kun tilisi on hyväksytty.<br><br>Ota yhteyttä työnjohtajaasi jos prosessi kestää.</div>
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="goLoginStep('stepPhone')">← Takaisin</button>
+    </div>
+
+    <!-- Step 5: Blocked -->
+    <div class="login-step" id="stepBlocked">
+      <div class="status-card blocked">
+        <div class="status-icon">🚫</div>
+        <div class="status-title" style="color:var(--danger)">Tili estetty</div>
+        <div class="status-text">Tilisi on estetty. Ota yhteyttä ylläpitoon.</div>
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="goLoginStep('stepPhone')">← Takaisin</button>
+    </div>
   </div>
 </div>
 
@@ -275,17 +348,32 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
     <div class="modal-body">
       <div class="form-row">
         <div class="form-group"><label class="form-label">Nimi *</label><input class="inp" id="wf_name"></div>
-        <div class="form-group"><label class="form-label">Rooli</label><select class="inp" id="wf_role"><option value="worker">Työntekijä</option><option value="admin">Admin</option></select></div>
+        <div class="form-group"><label class="form-label">Rooli</label>
+          <select class="inp" id="wf_role">
+            <option value="worker">Työntekijä</option>
+            <option value="supervisor">Mestari</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label class="form-label">Puhelin *</label><input class="inp" id="wf_phone" placeholder="+358401234567"></div>
         <div class="form-group"><label class="form-label">Sähköposti</label><input class="inp" id="wf_email" type="email"></div>
-        <div class="form-group"><label class="form-label">Puhelin</label><input class="inp" id="wf_phone"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">PIN (4 num.)</label><input class="inp" id="wf_pin" type="password" maxlength="4" inputmode="numeric"></div>
-        <div class="form-group"><label class="form-label">Tuntipalkka €/h</label><input class="inp" id="wf_hourlyRate" type="number" step="0.01" min="0"></div>
+        <div class="form-group"><label class="form-label">Yritys</label><input class="inp" id="wf_company"></div>
+        <div class="form-group"><label class="form-label">Tila</label>
+          <select class="inp" id="wf_status">
+            <option value="active">Aktiivinen</option>
+            <option value="pending">Odottaa hyväksyntää</option>
+            <option value="blocked">Estetty</option>
+          </select>
+        </div>
       </div>
-      <div class="form-group"><label class="form-label">Ylityökerroin</label><input class="inp" id="wf_overtimeMultiplier" type="number" step="0.1" min="1" value="1.5"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tuntipalkka €/h</label><input class="inp" id="wf_hourlyRate" type="number" step="0.01" min="0"></div>
+        <div class="form-group"><label class="form-label">Ylityökerroin</label><input class="inp" id="wf_overtimeMultiplier" type="number" step="0.1" min="1" value="1.5"></div>
+      </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('workerModal')">Peruuta</button><button class="btn btn-primary" onclick="saveWorker()">Tallenna</button></div>
   </div>
@@ -369,20 +457,39 @@ var db = {
     return rows[idx]||null;
   },
   remove: function(n,id) { this._s(n,this._t(n).filter(function(r){return r.id!==id;})); },
-  resetAll: function() { ['workers','customers','sites','entries'].forEach(function(t){localStorage.removeItem(P+t);}); },
-  export: function() { var o={}; ['workers','customers','sites','entries'].forEach(function(t){o[t]=db._t(t);}); return o; },
+  resetAll: function() {
+    ['workers','customers','sites','entries','verification_logs','device_logs'].forEach(function(t){localStorage.removeItem(P+t);});
+  },
+  export: function() {
+    var o={};
+    ['workers','customers','sites','entries'].forEach(function(t){o[t]=db._t(t);});
+    return o;
+  },
   import: function(snap) { Object.keys(snap).forEach(function(t){db._s(t,snap[t]);}); }
 };
+
+// ══════════════════════════════════════════════════
+// DEVICE FINGERPRINT
+// ══════════════════════════════════════════════════
+function getDeviceId() {
+  var k = P+'device_id';
+  var id = localStorage.getItem(k);
+  if (!id) {
+    id = typeof crypto!=='undefined'&&crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36);
+    localStorage.setItem(k, id);
+  }
+  return id;
+}
 
 // ══════════════════════════════════════════════════
 // SEED
 // ══════════════════════════════════════════════════
 function seedIfEmpty() {
   if (db.list('workers').length > 0) return;
-  var w1=db.insert('workers',{name:'Matti Virtanen',role:'admin',pin:'1234',email:'matti@example.fi',phone:'040-1234567',hourlyRate:22,overtimeMultiplier:1.5,active:true});
-  var w2=db.insert('workers',{name:'Juha Korhonen',role:'worker',pin:'0000',email:'juha@example.fi',phone:'040-2345678',hourlyRate:18,overtimeMultiplier:1.5,active:true});
-  var w3=db.insert('workers',{name:'Sari Mäkinen',role:'worker',pin:'0000',email:'sari@example.fi',phone:'040-3456789',hourlyRate:18,overtimeMultiplier:1.5,active:true});
-  var w4=db.insert('workers',{name:'Pekka Leinonen',role:'worker',pin:'0000',email:'pekka@example.fi',phone:'040-4567890',hourlyRate:16,overtimeMultiplier:1.5,active:true});
+  var w1=db.insert('workers',{name:'Matti Virtanen',role:'admin',phone:'+358401234567',email:'matti@example.fi',company:'Rakennusliike Oy',hourlyRate:22,overtimeMultiplier:1.5,status:'active',active:true});
+  var w2=db.insert('workers',{name:'Juha Korhonen',role:'supervisor',phone:'+358402345678',email:'juha@example.fi',company:'Rakennusliike Oy',hourlyRate:20,overtimeMultiplier:1.5,status:'active',active:true});
+  var w3=db.insert('workers',{name:'Sari Mäkinen',role:'worker',phone:'+358403456789',email:'sari@example.fi',company:'Rakennusliike Oy',hourlyRate:18,overtimeMultiplier:1.5,status:'active',active:true});
+  var w4=db.insert('workers',{name:'Pekka Leinonen',role:'worker',phone:'+358404567890',email:'pekka@example.fi',company:'Rakennusliike Oy',hourlyRate:16,overtimeMultiplier:1.5,status:'active',active:true});
   var c1=db.insert('customers',{name:'Rakennusliike Oy',contactPerson:'Kari Niemi',email:'kari@rakennus.fi',phone:'09-1234567',address:'Mannerheimintie 1',city:'Helsinki',businessId:'1234567-8',active:true});
   var c2=db.insert('customers',{name:'Kiinteistö Oy Vantaa',contactPerson:'Liisa Salo',email:'liisa@kiint.fi',phone:'09-2345678',address:'Tikkurilantie 5',city:'Vantaa',businessId:'2345678-9',active:true});
   var c3=db.insert('customers',{name:'Espoo Rakennus Oy',contactPerson:'Timo Lehtinen',email:'timo@espoor.fi',phone:'09-3456789',address:'Espoonkatu 10',city:'Espoo',businessId:'3456789-0',active:true});
@@ -442,9 +549,95 @@ var CATEGORIES={installation:'Asennus',demolition:'Purkutyö',cleaning:'Siivous'
 var STATUS_LABELS={submitted:'Lähetetty',approved:'Hyväksytty',rejected:'Hylätty'};
 
 // ══════════════════════════════════════════════════
-// AUTH
+// AUTH — Phone OTP
 // ══════════════════════════════════════════════════
-var _session=null, _pin='';
+var _session=null;
+var _pendingPhone='';
+var _pendingOTP='';
+
+function normalizePhone(raw) {
+  var n = raw.replace(/\s/g,'');
+  if (n.startsWith('0')) n = '+358' + n.slice(1);
+  if (!n.startsWith('+')) n = '+358' + n;
+  return n;
+}
+
+function goLoginStep(stepId) {
+  document.querySelectorAll('.login-step').forEach(function(el){el.classList.remove('active');});
+  var el = document.getElementById(stepId);
+  if (el) el.classList.add('active');
+}
+
+function handlePhoneSubmit() {
+  var raw = document.getElementById('phoneInp').value.trim();
+  document.getElementById('phoneErr').textContent = '';
+  if (!raw) { document.getElementById('phoneErr').textContent = 'Syötä puhelinnumero.'; return; }
+  _pendingPhone = normalizePhone(raw);
+
+  // Find worker by phone
+  var workers = db.list('workers');
+  var worker = workers.find(function(w){ return normalizePhone(w.phone||'') === _pendingPhone; });
+
+  if (worker) {
+    if (worker.status === 'pending') { goLoginStep('stepPending'); return; }
+    if (worker.status === 'blocked') { goLoginStep('stepBlocked'); return; }
+    // Generate OTP
+    _pendingOTP = String(Math.floor(100000 + Math.random()*900000));
+    db.insert('verification_logs', {phone: _pendingPhone, code: _pendingOTP, workerId: worker.id});
+    document.getElementById('otpPhone').textContent = _pendingPhone;
+    document.getElementById('otpCodeDisplay').textContent = _pendingOTP;
+    document.getElementById('otpInp').value = '';
+    document.getElementById('otpErr').textContent = '';
+    goLoginStep('stepOTP');
+  } else {
+    // New user — go to registration
+    goLoginStep('stepRegister');
+    document.getElementById('regErr').textContent = '';
+    document.getElementById('regName').value = '';
+    document.getElementById('regCompany').value = '';
+  }
+}
+
+function handleOTPSubmit() {
+  var entered = document.getElementById('otpInp').value.trim();
+  document.getElementById('otpErr').textContent = '';
+  if (!entered) { document.getElementById('otpErr').textContent = 'Syötä OTP-koodi.'; return; }
+  if (entered !== _pendingOTP) { document.getElementById('otpErr').textContent = 'Väärä koodi. Yritä uudelleen.'; return; }
+
+  var workers = db.list('workers');
+  var worker = workers.find(function(w){ return normalizePhone(w.phone||'') === _pendingPhone; });
+  if (!worker) { document.getElementById('otpErr').textContent = 'Käyttäjää ei löydy.'; return; }
+
+  // Log device
+  var deviceId = getDeviceId();
+  db.insert('device_logs', {workerId: worker.id, deviceId: deviceId, type: 'login', timestamp: new Date().toISOString()});
+
+  saveSession({workerId: worker.id, workerName: worker.name, role: worker.role, deviceId: deviceId});
+  showApp();
+}
+
+function handleRegister() {
+  var name = document.getElementById('regName').value.trim();
+  var company = document.getElementById('regCompany').value.trim();
+  var role = document.getElementById('regRole').value;
+  document.getElementById('regErr').textContent = '';
+  if (!name) { document.getElementById('regErr').textContent = 'Nimi on pakollinen.'; return; }
+
+  var deviceId = getDeviceId();
+  db.insert('workers', {
+    name: name,
+    phone: _pendingPhone,
+    company: company,
+    role: role,
+    status: 'pending',
+    active: false,
+    hourlyRate: 0,
+    overtimeMultiplier: 1.5,
+    registeredDeviceId: deviceId
+  });
+  db.insert('device_logs', {workerId: null, deviceId: deviceId, type: 'register', phone: _pendingPhone, timestamp: new Date().toISOString()});
+  goLoginStep('stepPending');
+}
 
 function restoreSession() {
   try { var s=JSON.parse(sessionStorage.getItem('wt_session')||'null'); if(s){_session=s;return true;} } catch(e){}
@@ -452,49 +645,27 @@ function restoreSession() {
 }
 function saveSession(s) { _session=s; sessionStorage.setItem('wt_session',JSON.stringify(s)); }
 
-function populateWorkerSelect() {
-  var sel=document.getElementById('loginWorkerSel');
-  var workers=db.list('workers',function(w){return w.active!==false;});
-  sel.innerHTML='<option value="">– Valitse käyttäjä –</option>'+workers.map(function(w){return '<option value="'+w.id+'">'+esc(w.name)+'</option>';}).join('');
-}
-
-function appendPin(d) {
-  if(_pin.length>=4) return;
-  _pin+=d;
-  document.getElementById('pinDisplay').textContent='●'.repeat(_pin.length)+'–'.repeat(4-_pin.length);
-}
-function clearPin() {
-  _pin='';
-  document.getElementById('pinDisplay').textContent='––––';
-  document.getElementById('loginErr').textContent='';
-}
-function handleLogin() {
-  var wid=document.getElementById('loginWorkerSel').value;
-  if(!wid){document.getElementById('loginErr').textContent='Valitse käyttäjä.';return;}
-  if(_pin.length<4){document.getElementById('loginErr').textContent='Syötä 4-numeroinen PIN.';return;}
-  var w=db.get('workers',wid);
-  if(!w||w.pin!==_pin){document.getElementById('loginErr').textContent='Väärä PIN.';clearPin();return;}
-  saveSession({workerId:w.id,workerName:w.name,role:w.role});
-  showApp();
-}
 function logout() {
-  _session=null; sessionStorage.removeItem('wt_session'); clearPin();
-  document.getElementById('loginErr').textContent='';
+  _session=null; sessionStorage.removeItem('wt_session');
+  _pendingPhone=''; _pendingOTP='';
+  document.getElementById('phoneInp').value='';
   document.getElementById('app').style.display='none';
   document.getElementById('app').classList.remove('visible');
   document.getElementById('loginScreen').style.display='flex';
+  goLoginStep('stepPhone');
 }
+
 function showApp() {
   document.getElementById('loginScreen').style.display='none';
   var app=document.getElementById('app');
   app.style.display='flex';
   app.classList.add('visible');
   document.getElementById('headerUser').textContent=_session.workerName||'';
-  var adm=_session.role==='admin';
+  var adm=_session.role==='admin'||_session.role==='supervisor';
   document.getElementById('adminSep').style.display=adm?'':'none';
   document.getElementById('adminLabel').style.display=adm?'':'none';
-  document.getElementById('navWorkers').style.display=adm?'':'none';
-  document.getElementById('navCustomers').style.display=adm?'':'none';
+  document.getElementById('navWorkers').style.display=_session.role==='admin'?'':'none';
+  document.getElementById('navCustomers').style.display=_session.role==='admin'?'':'none';
   document.getElementById('navSites').style.display=adm?'':'none';
   switchPanel('home');
   resumeTimerIfActive();
@@ -534,6 +705,7 @@ function renderHome() {
   var monthStart=today.slice(0,7)+'-01';
   var monthE=allEntries.filter(function(e){return e.date>=monthStart&&e.date<=today;});
   var pendingE=allEntries.filter(function(e){return e.status==='submitted';});
+  var pendingWorkers=db.list('workers',function(w){return w.status==='pending';});
   var totalToday=todayE.reduce(function(a,e){return a+(e.netMs||0);},0);
   var totalMonth=monthE.reduce(function(a,e){return a+(e.netMs||0);},0);
   var myToday=todayE.filter(function(e){return e.workerId===s.workerId;}).reduce(function(a,e){return a+(e.netMs||0);},0);
@@ -570,7 +742,15 @@ function renderHome() {
   }
   html+='</div>';
   if(isAdm){
-    html+='<div class="card mt-4"><div class="card-title">Tänään töissä</div>'+workerRows+'</div>';
+    if(pendingWorkers.length>0){
+      html+='<div class="card mt-4" style="border:2px solid var(--accent)"><div class="card-title">👤 Hyväksyntää odottavat tilit ('+pendingWorkers.length+')</div>';
+      pendingWorkers.forEach(function(w){
+        html+='<div class="approval-card"><div class="approval-card-title">'+esc(w.name)+'</div><div class="approval-card-sub">'+esc(w.phone||'')+(w.company?' · '+esc(w.company):'')+'<br>Rooli: '+esc(w.role)+'</div>';
+        html+='<div class="btn-row"><button class="btn btn-green btn-sm" onclick="approveWorker(\''+w.id+'\')">✓ Hyväksy</button><button class="btn btn-danger btn-sm" onclick="blockWorker(\''+w.id+'\')">✕ Estä</button></div></div>';
+      });
+      html+='</div>';
+    }
+    html+='<div class="card mt-3"><div class="card-title">Tänään töissä</div>'+workerRows+'</div>';
     if(pendingE.length>0){
       html+='<div class="card mt-3"><div class="card-title">⏳ Odottaa hyväksyntää ('+pendingE.length+')</div>'+pendingRows;
       if(pendingE.length>5) html+='<div style="font-size:.8rem;color:var(--muted);padding:8px">+ '+(pendingE.length-5)+' lisää</div>';
@@ -579,6 +759,17 @@ function renderHome() {
   }
   html+='<div class="quick-actions mt-4"><button class="btn btn-green" onclick="switchPanel(\'timer\')">▶ Aloita työvuoro</button><button class="btn btn-ghost" onclick="switchPanel(\'calendar\')">📅 Kalenteri</button><button class="btn btn-ghost" onclick="switchPanel(\'reports\')">📊 Raportit</button></div>';
   document.getElementById('panel-home').innerHTML=html;
+}
+
+function approveWorker(id) {
+  db.update('workers', id, {status:'active', active:true});
+  toast('Käyttäjä hyväksytty.','success');
+  renderHome();
+}
+function blockWorker(id) {
+  db.update('workers', id, {status:'blocked', active:false});
+  toast('Käyttäjä estetty.','warn');
+  renderHome();
 }
 
 // ══════════════════════════════════════════════════
@@ -694,7 +885,7 @@ function getWeekNum(d){
 function calEntries(){
   var s=_session;
   return db.list('entries',function(e){
-    if(s.role!=='admin'&&e.workerId!==s.workerId) return false;
+    if(s.role!=='admin'&&s.role!=='supervisor'&&e.workerId!==s.workerId) return false;
     if(_calFilters.workerId&&e.workerId!==_calFilters.workerId) return false;
     if(_calFilters.customerId){var si=db.get('sites',e.siteId);if(!si||si.customerId!==_calFilters.customerId) return false;}
     return true;
@@ -703,7 +894,7 @@ function calEntries(){
 function renderCalendar(){
   var workers=db.list('workers',function(w){return w.active!==false;});
   var customers=db.list('customers',function(c){return c.active!==false;});
-  var isAdm=_session.role==='admin';
+  var isAdm=_session.role==='admin'||_session.role==='supervisor';
   var label='';
   if(_calView==='month') label=_calDate.toLocaleDateString('fi-FI',{month:'long',year:'numeric'});
   else if(_calView==='week') label='Vk '+getWeekNum(_calDate);
@@ -825,16 +1016,28 @@ function refreshPanels(){
 var _editWorkerId=null;
 function renderWorkers(){
   var workers=db.list('workers');
+  var pending=workers.filter(function(w){return w.status==='pending';});
+  var pendingHtml='';
+  if(pending.length){
+    pendingHtml='<div class="card" style="border:2px solid var(--accent);margin-bottom:12px"><div class="card-title">⏳ Odottaa hyväksyntää ('+pending.length+')</div>';
+    pending.forEach(function(w){
+      pendingHtml+='<div class="approval-card"><div class="approval-card-title">'+esc(w.name)+'</div><div class="approval-card-sub">'+esc(w.phone||'')+(w.company?' · '+esc(w.company):'')+'</div><div class="btn-row"><button class="btn btn-green btn-sm" onclick="approveWorker(\''+w.id+'\')">✓ Hyväksy</button><button class="btn btn-danger btn-sm" onclick="blockWorker(\''+w.id+'\')">✕ Estä</button></div></div>';
+    });
+    pendingHtml+='</div>';
+  }
   document.getElementById('panel-workers').innerHTML=
     '<div class="panel-header"><h2 class="panel-title">Työntekijät</h2><button class="btn btn-primary btn-sm" onclick="openWorkerForm()">+ Lisää</button></div>'+
+    pendingHtml+
     '<div class="search-row"><input class="inp inp-sm" placeholder="🔍 Hae nimellä..." oninput="filterWorkers(this.value)"></div>'+
     '<div id="workersTable" class="card" style="padding:0;overflow:hidden">'+workersTable(workers)+'</div>';
 }
 function workersTable(workers){
   if(!workers.length) return '<p class="empty-msg">Ei työntekijöitä.</p>';
-  return '<table class="data-table"><thead><tr><th>Nimi</th><th>Rooli</th><th>Sähköposti</th><th>€/h</th><th>Tila</th><th></th></tr></thead><tbody>'+
+  return '<table class="data-table"><thead><tr><th>Nimi</th><th>Rooli</th><th>Puhelin</th><th>Yritys</th><th>Tila</th><th></th></tr></thead><tbody>'+
     workers.map(function(w){
-      return '<tr class="'+(w.active===false?'row-inactive':'')+'"><td><strong>'+esc(w.name)+'</strong></td><td><span class="role-badge role-'+w.role+'">'+(w.role==='admin'?'Admin':'Työntekijä')+'</span></td><td>'+esc(w.email||'')+'</td><td>'+(w.hourlyRate?w.hourlyRate+'€':'–')+'</td><td><span class="status-badge '+(w.active!==false?'status-approved':'status-rejected')+'">'+(w.active!==false?'Aktiivinen':'Ei aktiivinen')+'</span></td><td class="row-actions"><button class="icon-btn" onclick="openWorkerForm(\''+w.id+'\')">✏️</button><button class="icon-btn" onclick="toggleWorkerActive(\''+w.id+'\','+(w.active!==false)+')">'+(w.active!==false?'🚫':'✅')+'</button></td></tr>';
+      var roleLabel = w.role==='admin'?'Admin':w.role==='supervisor'?'Mestari':'Työntekijä';
+      var statusLabel = {active:'Aktiivinen',pending:'Odottaa',blocked:'Estetty'}[w.status||'active']||'Aktiivinen';
+      return '<tr class="'+(w.status==='blocked'?'row-inactive':'')+'"><td><strong>'+esc(w.name)+'</strong></td><td><span class="role-badge role-'+w.role+'">'+roleLabel+'</span></td><td>'+esc(w.phone||'')+'</td><td>'+esc(w.company||'')+'</td><td><span class="status-badge status-'+(w.status||'active')+'">'+statusLabel+'</span></td><td class="row-actions"><button class="icon-btn" onclick="openWorkerForm(\''+w.id+'\')">✏️</button></td></tr>';
     }).join('')+'</tbody></table>';
 }
 function filterWorkers(q){
@@ -845,23 +1048,26 @@ function openWorkerForm(id){
   id=id||null; _editWorkerId=id;
   document.getElementById('workerModalTitle').textContent=id?'Muokkaa työntekijää':'Uusi työntekijä';
   var w=id?db.get('workers',id):{};
-  ['name','email','phone','role','pin','hourlyRate','overtimeMultiplier'].forEach(function(k){
+  ['name','phone','email','role','company','hourlyRate','overtimeMultiplier'].forEach(function(k){
     var inp=document.getElementById('wf_'+k); if(inp) inp.value=w[k]!=null?w[k]:'';
   });
+  var statusEl=document.getElementById('wf_status');
+  if(statusEl) statusEl.value=w.status||'active';
   if(!id){var om=document.getElementById('wf_overtimeMultiplier');if(om)om.value='1.5';}
   openModal('workerModal');
 }
 function saveWorker(){
   var data={};
-  ['name','email','phone','role','pin','hourlyRate','overtimeMultiplier'].forEach(function(k){var inp=document.getElementById('wf_'+k);data[k]=inp?inp.value.trim():'';});
+  ['name','phone','email','role','company','hourlyRate','overtimeMultiplier'].forEach(function(k){var inp=document.getElementById('wf_'+k);data[k]=inp?inp.value.trim():'';});
+  data.status=(document.getElementById('wf_status')||{}).value||'active';
+  data.active=data.status==='active';
   if(!data.name){toast('Nimi on pakollinen.','warn');return;}
   data.hourlyRate=parseFloat(data.hourlyRate)||0;
   data.overtimeMultiplier=parseFloat(data.overtimeMultiplier)||1.5;
   if(_editWorkerId){db.update('workers',_editWorkerId,data);toast('Päivitetty.','success');}
-  else{db.insert('workers',Object.assign({},data,{active:true}));toast('Lisätty.','success');}
+  else{db.insert('workers',data);toast('Lisätty.','success');}
   closeModal('workerModal');renderWorkers();
 }
-function toggleWorkerActive(id,cur){db.update('workers',id,{active:!cur});toast(cur?'Deaktivoitu.':'Aktivoitu.','info');renderWorkers();}
 
 // ══════════════════════════════════════════════════
 // CUSTOMERS
@@ -965,7 +1171,7 @@ function renderReports(){
   var sites=db.list('sites');
   var today=new Date().toISOString().slice(0,10);
   var monthStart=today.slice(0,7)+'-01';
-  var isAdm=_session.role==='admin';
+  var isAdm=_session.role==='admin'||_session.role==='supervisor';
   document.getElementById('panel-reports').innerHTML=
     '<div class="panel-header"><h2 class="panel-title">Raportit</h2></div>'+
     '<div class="card"><div class="card-title">Suodattimet</div>'+
@@ -984,7 +1190,7 @@ function getReportEntries(){
   var st=(document.getElementById('rStatus')||{}).value||'';
   var s=_session;
   return db.list('entries',function(e){
-    if(s.role!=='admin'&&e.workerId!==s.workerId) return false;
+    if(s.role!=='admin'&&s.role!=='supervisor'&&e.workerId!==s.workerId) return false;
     if(from&&e.date<from) return false;
     if(to&&e.date>to) return false;
     if(wid&&e.workerId!==wid) return false;
@@ -1047,12 +1253,19 @@ function exportPDF(){
 // SETTINGS
 // ══════════════════════════════════════════════════
 function renderSettings(){
+  var deviceId = getDeviceId();
   document.getElementById('panel-settings').innerHTML=
     '<div class="panel-header"><h2 class="panel-title">Asetukset</h2></div>'+
+    '<div class="card mt-3"><div class="card-title">Profiili</div>'+
+    '<table style="width:100%;font-size:.88rem;border-collapse:collapse">'+
+    '<tr><td style="padding:6px 0;color:var(--muted);width:40%">Nimi</td><td>'+esc(_session.workerName||'')+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Rooli</td><td>'+esc(_session.role||'')+'</td></tr>'+
+    '<tr><td style="padding:6px 0;color:var(--muted)">Laite-ID</td><td style="font-family:monospace;font-size:.78rem">'+esc(deviceId.slice(0,16))+'…</td></tr>'+
+    '</table></div>'+
     '<div class="card mt-3"><div class="card-title">Tiedot</div><p style="font-size:.85rem;color:var(--muted)">Kaikki tiedot tallennetaan selaimesi localStorage-muistiin.</p>'+
     '<div class="btn-row mt-3"><button class="btn btn-ghost" onclick="exportData()">⬇ Varmuuskopioi JSON</button><label class="btn btn-ghost" style="cursor:pointer">⬆ Palauta JSON<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label></div></div>'+
     '<div class="card mt-3"><div class="card-title">Demo-data</div><p style="font-size:.85rem;color:var(--muted)">Nollaa kaikki data ja lataa alkuperäinen demo-data uudelleen.</p><div class="btn-row mt-3"><button class="btn btn-danger" onclick="resetToDemo()">⚠️ Nollaa demo-data</button></div></div>'+
-    '<div class="card mt-3"><div class="card-title">Versio</div><p style="font-size:.8rem;color:var(--muted)">Työajanseuranta Platform v1.0.0<br>Admin: Matti Virtanen PIN 1234 | Työntekijät PIN 0000</p></div>';
+    '<div class="card mt-3"><div class="card-title">Versio</div><p style="font-size:.8rem;color:var(--muted)">Työajanseuranta Platform v2.0.0<br><br>Demo-kirjautuminen: syötä puhelinnumero ja käytä näytettävää OTP-koodia.<br>+358401234567 (Admin), +358402345678 (Mestari), +358403456789 (Työntekijä)</p></div>';
 }
 function exportData(){
   var a=document.createElement('a');
@@ -1077,8 +1290,12 @@ function resetToDemo(){
 // INIT
 // ══════════════════════════════════════════════════
 seedIfEmpty();
-populateWorkerSelect();
+getDeviceId();
 if(restoreSession()){showApp();}
+
+// Allow pressing Enter on phone/OTP inputs
+document.getElementById('phoneInp').addEventListener('keydown', function(e){ if(e.key==='Enter') handlePhoneSubmit(); });
+document.getElementById('otpInp').addEventListener('keydown', function(e){ if(e.key==='Enter') handleOTPSubmit(); });
 </script>
 </body>
 </html>
