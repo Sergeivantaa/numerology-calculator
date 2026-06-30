@@ -39,13 +39,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .phone-inp { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; width: 100%; }
 .phone-inp:focus { outline: none; border-color: var(--primary); }
 
-.otp-box { background: #fffbe6; border: 2px solid var(--accent); border-radius: 10px; padding: 14px; margin-bottom: 16px; text-align: left; }
-.otp-demo-label { font-size: .72rem; font-weight: 700; color: var(--warn); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-.otp-code { font-size: 2rem; font-weight: 700; color: var(--primary); letter-spacing: .25em; text-align: center; margin: 8px 0; }
-.otp-disclaimer { font-size: .72rem; color: var(--muted); line-height: 1.4; }
-
-.otp-input { width: 100%; padding: 12px; font-size: 1.4rem; text-align: center; letter-spacing: .3em; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
-.otp-input:focus { outline: none; border-color: var(--primary); }
+.demo-note { background: #f0f9f4; border: 1px solid #b7dfca; border-radius: 8px; padding: 10px 12px; font-size: .75rem; color: #2D6A4F; margin-bottom: 16px; text-align: left; }
 
 .login-err { color: var(--danger); font-size: .85rem; margin-top: 8px; min-height: 1.2em; text-align: left; }
 .login-back { background: none; border: none; color: var(--muted); font-size: .85rem; cursor: pointer; margin-top: 8px; text-decoration: underline; }
@@ -229,43 +223,31 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
     <div class="login-title">Työajanseuranta</div>
     <div class="login-sub">Rakennusalan työtuntien seuranta</div>
 
-    <!-- Step 1: Phone number -->
+    <!-- Step 1: Phone login / registration -->
     <div class="login-step active" id="stepPhone">
-      <div style="font-size:.85rem;color:var(--muted);margin-bottom:12px;text-align:left">Syötä puhelinnumerosi kirjautuaksesi sisään.</div>
-      <div class="phone-input-row">
-        <span class="phone-prefix">🇫🇮 +358</span>
-        <input class="phone-inp" id="phoneInp" type="tel" placeholder="401234567" maxlength="15" inputmode="tel">
+      <div class="demo-note">ℹ️ <strong>Demo-kirjautuminen:</strong> Kirjautuminen tapahtuu puhelinnumerolla. Oikea tunnistautuminen vaatii myöhemmin backend-integraation.</div>
+      <div class="form-group" style="text-align:left">
+        <label class="form-label">Puhelinnumero</label>
+        <div class="phone-input-row">
+          <span class="phone-prefix">🇫🇮 +358</span>
+          <input class="phone-inp" id="phoneInp" type="tel" placeholder="401234567" maxlength="15" inputmode="tel">
+        </div>
       </div>
-      <button class="btn btn-primary btn-full" onclick="handlePhoneSubmit()">Jatka →</button>
+      <button class="btn btn-primary btn-full" onclick="handlePhoneSubmit()">Kirjaudu puhelinnumerolla →</button>
       <div class="login-err" id="phoneErr"></div>
-      <div style="margin-top:16px;padding:10px;background:var(--bg);border-radius:8px;font-size:.75rem;color:var(--muted);text-align:left">
-        🔒 <strong>Demo-tila:</strong> Kirjautuminen ei vaadi oikeaa SMS-viestiä. OTP-koodi näytetään ruudulla.
-      </div>
     </div>
 
-    <!-- Step 2: OTP verification -->
-    <div class="login-step" id="stepOTP">
-      <div id="otpBox" class="otp-box">
-        <div class="otp-demo-label">⚠️ Demo – Ei oikeaa SMS:ää</div>
-        <div style="font-size:.8rem;color:var(--text);margin-bottom:4px">Koodisi numeroon <strong id="otpPhone"></strong>:</div>
-        <div class="otp-code" id="otpCodeDisplay">––––––</div>
-        <div class="otp-disclaimer">Oikea SMS-lähetys vaatii backend-integraation (Firebase, Twilio, Supabase). Tässä demossa koodi näytetään yllä.</div>
-      </div>
-      <input class="otp-input" id="otpInp" type="text" placeholder="000000" maxlength="6" inputmode="numeric">
-      <button class="btn btn-primary btn-full" onclick="handleOTPSubmit()">Kirjaudu sisään</button>
-      <div class="login-err" id="otpErr"></div>
-      <button class="login-back" onclick="goLoginStep('stepPhone')">← Vaihda numero</button>
-    </div>
-
-    <!-- Step 3: New user registration -->
+    <!-- Step 2: New user registration -->
     <div class="login-step" id="stepRegister">
-      <div style="font-size:.85rem;color:var(--muted);margin-bottom:16px;text-align:left">Numeroa ei löydy. Luo uusi tili:</div>
-      <div class="form-group"><label class="form-label">Koko nimi *</label><input class="inp" id="regName" placeholder="Etunimi Sukunimi"></div>
+      <div style="font-size:.85rem;color:var(--muted);margin-bottom:16px;text-align:left">Numeroa ei löydy järjestelmästä. Luo uusi profiili:</div>
+      <div class="form-group"><label class="form-label">Nimi *</label><input class="inp" id="regName" placeholder="Etunimi Sukunimi"></div>
+      <div class="form-group"><label class="form-label">Puhelinnumero</label><input class="inp" id="regPhone" readonly style="background:var(--bg);color:var(--muted)"></div>
       <div class="form-group"><label class="form-label">Yritys</label><input class="inp" id="regCompany" placeholder="Rakennusliike Oy"></div>
       <div class="form-group"><label class="form-label">Rooli</label>
         <select class="inp" id="regRole">
           <option value="worker">Työntekijä</option>
           <option value="supervisor">Mestari / Työnjohtaja</option>
+          <option value="admin">Admin</option>
         </select>
       </div>
       <button class="btn btn-primary btn-full" onclick="handleRegister()">Rekisteröidy</button>
@@ -273,7 +255,7 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
       <button class="login-back" onclick="goLoginStep('stepPhone')">← Takaisin</button>
     </div>
 
-    <!-- Step 4: Pending approval -->
+    <!-- Step 3: Pending approval -->
     <div class="login-step" id="stepPending">
       <div class="status-card pending">
         <div class="status-icon">⏳</div>
@@ -550,11 +532,11 @@ var CATEGORIES={installation:'Asennus',demolition:'Purkutyö',cleaning:'Siivous'
 var STATUS_LABELS={submitted:'Lähetetty',approved:'Hyväksytty',rejected:'Hylätty'};
 
 // ══════════════════════════════════════════════════
-// AUTH — Phone OTP
+// AUTH — Phone-only login (demo)
+// Phone number login is demo-only. Real identity verification requires backend authentication later.
 // ══════════════════════════════════════════════════
 var _session=null;
 var _pendingPhone='';
-var _pendingOTP='';
 
 function normalizePhone(raw) {
   var n = raw.replace(/\s/g,'');
@@ -575,46 +557,24 @@ function handlePhoneSubmit() {
   if (!raw) { document.getElementById('phoneErr').textContent = 'Syötä puhelinnumero.'; return; }
   _pendingPhone = normalizePhone(raw);
 
-  // Find worker by phone
   var workers = db.list('workers');
   var worker = workers.find(function(w){ return normalizePhone(w.phone||'') === _pendingPhone; });
 
   if (worker) {
     if (worker.status === 'pending') { goLoginStep('stepPending'); return; }
     if (worker.status === 'blocked') { goLoginStep('stepBlocked'); return; }
-    // Generate OTP
-    _pendingOTP = String(Math.floor(100000 + Math.random()*900000));
-    db.insert('verification_logs', {phone: _pendingPhone, code: _pendingOTP, workerId: worker.id});
-    document.getElementById('otpPhone').textContent = _pendingPhone;
-    document.getElementById('otpCodeDisplay').textContent = _pendingOTP;
-    document.getElementById('otpInp').value = '';
-    document.getElementById('otpErr').textContent = '';
-    goLoginStep('stepOTP');
+    var deviceId = getDeviceId();
+    db.insert('device_logs', {workerId: worker.id, deviceId: deviceId, type: 'login', timestamp: new Date().toISOString()});
+    saveSession({workerId: worker.id, workerName: worker.name, role: worker.role, deviceId: deviceId});
+    showApp();
   } else {
-    // New user — go to registration
-    goLoginStep('stepRegister');
+    var regPhone = document.getElementById('regPhone');
+    if (regPhone) regPhone.value = _pendingPhone;
     document.getElementById('regErr').textContent = '';
     document.getElementById('regName').value = '';
     document.getElementById('regCompany').value = '';
+    goLoginStep('stepRegister');
   }
-}
-
-function handleOTPSubmit() {
-  var entered = document.getElementById('otpInp').value.trim();
-  document.getElementById('otpErr').textContent = '';
-  if (!entered) { document.getElementById('otpErr').textContent = 'Syötä OTP-koodi.'; return; }
-  if (entered !== _pendingOTP) { document.getElementById('otpErr').textContent = 'Väärä koodi. Yritä uudelleen.'; return; }
-
-  var workers = db.list('workers');
-  var worker = workers.find(function(w){ return normalizePhone(w.phone||'') === _pendingPhone; });
-  if (!worker) { document.getElementById('otpErr').textContent = 'Käyttäjää ei löydy.'; return; }
-
-  // Log device
-  var deviceId = getDeviceId();
-  db.insert('device_logs', {workerId: worker.id, deviceId: deviceId, type: 'login', timestamp: new Date().toISOString()});
-
-  saveSession({workerId: worker.id, workerName: worker.name, role: worker.role, deviceId: deviceId});
-  showApp();
 }
 
 function handleRegister() {
@@ -625,19 +585,20 @@ function handleRegister() {
   if (!name) { document.getElementById('regErr').textContent = 'Nimi on pakollinen.'; return; }
 
   var deviceId = getDeviceId();
-  db.insert('workers', {
+  var worker = db.insert('workers', {
     name: name,
     phone: _pendingPhone,
     company: company,
     role: role,
-    status: 'pending',
-    active: false,
+    status: 'active',
+    active: true,
     hourlyRate: 0,
     overtimeMultiplier: 1.5,
     registeredDeviceId: deviceId
   });
-  db.insert('device_logs', {workerId: null, deviceId: deviceId, type: 'register', phone: _pendingPhone, timestamp: new Date().toISOString()});
-  goLoginStep('stepPending');
+  db.insert('device_logs', {workerId: worker.id, deviceId: deviceId, type: 'register', phone: _pendingPhone, timestamp: new Date().toISOString()});
+  saveSession({workerId: worker.id, workerName: worker.name, role: worker.role, deviceId: deviceId});
+  showApp();
 }
 
 function restoreSession() {
@@ -1266,7 +1227,7 @@ function renderSettings(){
     '<div class="card mt-3"><div class="card-title">Tiedot</div><p style="font-size:.85rem;color:var(--muted)">Kaikki tiedot tallennetaan selaimesi localStorage-muistiin.</p>'+
     '<div class="btn-row mt-3"><button class="btn btn-ghost" onclick="exportData()">⬇ Varmuuskopioi JSON</button><label class="btn btn-ghost" style="cursor:pointer">⬆ Palauta JSON<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label></div></div>'+
     '<div class="card mt-3"><div class="card-title">Demo-data</div><p style="font-size:.85rem;color:var(--muted)">Nollaa kaikki data ja lataa alkuperäinen demo-data uudelleen.</p><div class="btn-row mt-3"><button class="btn btn-danger" onclick="resetToDemo()">⚠️ Nollaa demo-data</button></div></div>'+
-    '<div class="card mt-3"><div class="card-title">Versio</div><p style="font-size:.8rem;color:var(--muted)">Työajanseuranta Platform v2.0.0<br><br>Demo-kirjautuminen: syötä puhelinnumero ja käytä näytettävää OTP-koodia.<br>+358401234567 (Admin), +358402345678 (Mestari), +358403456789 (Työntekijä)</p></div>';
+    '<div class="card mt-3"><div class="card-title">Versio</div><p style="font-size:.8rem;color:var(--muted)">Työajanseuranta Platform v2.1.0<br><br>Demo-kirjautuminen puhelinnumerolla (ei SMS-vahvistusta).<br>Valmiit demo-numerot: +358401234567 (Admin Matti), +358402345678 (Mestari Juha), +358403456789 (Sari), +358466444935 (Sergei)</p></div>';
 }
 function exportData(){
   var a=document.createElement('a');
@@ -1301,9 +1262,7 @@ seedIfEmpty();
 getDeviceId();
 if(restoreSession()){showApp();}
 
-// Allow pressing Enter on phone/OTP inputs
 document.getElementById('phoneInp').addEventListener('keydown', function(e){ if(e.key==='Enter') handlePhoneSubmit(); });
-document.getElementById('otpInp').addEventListener('keydown', function(e){ if(e.key==='Enter') handleOTPSubmit(); });
 </script>
 </body>
 </html>
