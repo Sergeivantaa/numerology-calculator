@@ -1,507 +1,692 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Työajanseuranta</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Työajanseuranta</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#1a1a1a;min-height:100vh}
 
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f0f2f5;
-            color: #333;
-            min-height: 100vh;
-        }
+header{background:#1e2d1e;color:#fff;padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+header h1{font-size:1.1rem;font-weight:700;letter-spacing:.01em}
+#headerClock{font-family:monospace;font-size:.95rem;background:rgba(255,255,255,.1);padding:3px 10px;border-radius:20px}
 
-        header {
-            background: #2c3e50;
-            color: white;
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+nav{background:#fff;border-bottom:1px solid #ddd;display:flex;overflow-x:auto;position:sticky;top:56px;z-index:99}
+nav button{flex:0 0 auto;padding:12px 16px;border:none;background:none;font-size:.8rem;font-weight:600;color:#666;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
+nav button.active{color:#1e2d1e;border-bottom-color:#c8602b}
 
-        header h1 { font-size: 1.4rem; font-weight: 600; }
+main{max-width:720px;margin:0 auto;padding:16px}
 
-        #kello {
-            font-size: 1.1rem;
-            font-family: monospace;
-            background: rgba(255,255,255,0.1);
-            padding: 4px 12px;
-            border-radius: 4px;
-        }
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07);padding:20px;margin-bottom:16px}
+.card-title{font-size:.76rem;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-bottom:12px;font-weight:700}
 
-        main {
-            max-width: 820px;
-            margin: 32px auto;
-            padding: 0 16px;
-        }
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn-primary{background:#1e2d1e;color:#fff}
+.btn-green{background:#2a7a3b;color:#fff}
+.btn-red{background:#c0392b;color:#fff}
+.btn-ghost{background:#fff;color:#1e2d1e;border:1.5px solid #ccc}
+.btn-sm{padding:7px 14px;font-size:.8rem}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
 
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            padding: 24px;
-            margin-bottom: 24px;
-        }
+.field-label{display:block;font-size:.78rem;font-weight:600;color:#666;margin-bottom:5px;margin-top:14px}
+.field-label:first-child{margin-top:0}
+input,select,textarea{width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:.9rem;color:#1a1a1a;background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1e2d1e}
+textarea{resize:vertical;min-height:60px}
 
-        .card h2 {
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #666;
-            margin-bottom: 16px;
-        }
+#timerDisplay{font-size:3rem;font-family:monospace;font-weight:700;text-align:center;letter-spacing:.05em;color:#1e2d1e;margin:10px 0}
+#timerDisplay.running{color:#2a7a3b}
 
-        .timer-display {
-            font-size: 3.5rem;
-            font-family: monospace;
-            font-weight: 700;
-            color: #2c3e50;
-            text-align: center;
-            margin: 16px 0;
-        }
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.73rem;font-weight:600}
+.badge-green{background:#d4edda;color:#1a7a30}
+.badge-blue{background:#d6e8fa;color:#1a5fa8}
+.badge-gray{background:#eee;color:#666}
 
-        .timer-display.running { color: #27ae60; }
+#gpsStatus{margin-top:8px;font-size:.82rem;color:#777;min-height:18px}
+#gpsStatus.ok{color:#2a7a3b;font-weight:600}
+#gpsStatus.err{color:#c0392b}
 
-        .task-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
+#activeBanner{display:none;background:#1e2d1e;color:#fff;padding:10px 16px;font-size:.85rem;border-radius:10px;margin-bottom:12px;line-height:1.5}
+#activeBanner strong{color:#8ecf96}
 
-        input[type="text"], select {
-            flex: 1;
-            min-width: 160px;
-            padding: 10px 14px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.sum-box{background:#f8f9f4;border-radius:10px;padding:14px;text-align:center}
+.sum-box .val{font-size:1.6rem;font-weight:700;color:#1e2d1e}
+.sum-box .lbl{font-size:.73rem;color:#888;margin-top:3px}
 
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: #2c3e50;
-        }
+.entry-item{border:1px solid #eee;border-radius:10px;padding:12px 36px 12px 14px;margin-bottom:8px;position:relative}
+.entry-site{font-weight:700;font-size:.9rem}
+.entry-meta{font-size:.78rem;color:#666;margin-top:3px;line-height:1.6}
+.entry-dur{font-size:1rem;font-weight:700;color:#1e2d1e;float:right;margin-left:8px}
+.entry-del{position:absolute;top:8px;right:8px;background:none;border:none;color:#ccc;cursor:pointer;font-size:1rem}
+.entry-del:hover{color:#c0392b}
 
-        .btn {
-            padding: 10px 22px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            font-weight: 600;
-            transition: opacity 0.15s;
-        }
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-label{font-size:.82rem;min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;background:#eee;border-radius:4px;height:8px}
+.bar-fill{background:#2a7a3b;border-radius:4px;height:8px;min-width:4px}
+.bar-val{font-size:.78rem;font-weight:700;color:#555;white-space:nowrap}
 
-        .btn:hover { opacity: 0.85; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:10px 0}
+.cal-hdr{text-align:center;font-size:.7rem;font-weight:700;color:#888;padding:4px 0}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:.78rem;cursor:pointer;border:1.5px solid transparent;position:relative;background:#f8f9f4;transition:.1s}
+.cal-day:hover{border-color:#1e2d1e}
+.cal-day.today{background:#1e2d1e;color:#fff;font-weight:700}
+.cal-day.has-data::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#c8602b}
+.cal-day.today.has-data::after{background:#8ecf96}
+.cal-day.selected{border-color:#c8602b}
+.cal-day.empty{background:none;cursor:default;pointer-events:none}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.cal-nav button{background:#fff;border:1.5px solid #ddd;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:1.1rem}
 
-        .btn-green  { background: #27ae60; color: white; }
-        .btn-red    { background: #e74c3c; color: white; }
-        .btn-blue   { background: #2980b9; color: white; }
-        .btn-gray   { background: #95a5a6; color: white; }
+.site-item{border:1px solid #eee;border-radius:10px;padding:12px 40px 12px 14px;margin-bottom:8px;position:relative}
+.site-name{font-weight:700;font-size:.9rem}
+.site-meta{font-size:.78rem;color:#666;margin-top:2px}
+.site-del{position:absolute;top:8px;right:8px;background:none;border:none;color:#ccc;cursor:pointer;font-size:1rem}
+.site-del:hover{color:#c0392b}
 
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+#siteForm{display:none;margin-top:14px;border-top:1px solid #eee;padding-top:14px}
+#siteForm.open{display:block}
 
-        /* Manual entry */
-        .manual-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 10px;
-            align-items: end;
-        }
+.tabs{display:none}
+.tabs.active{display:block}
 
-        .manual-grid label { display: block; font-size: 0.8rem; color: #666; margin-bottom: 4px; }
-
-        input[type="date"], input[type="time"] {
-            width: 100%;
-            padding: 10px 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-
-        /* Log table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        th {
-            text-align: left;
-            padding: 10px 12px;
-            border-bottom: 2px solid #eee;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            color: #888;
-        }
-
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #fafafa; }
-
-        .tag {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            background: #ecf0f1;
-            color: #555;
-        }
-
-        .del-btn {
-            background: none;
-            border: none;
-            color: #e74c3c;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .del-btn:hover { background: #fdecea; }
-
-        /* Summary */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
-        }
-
-        .summary-box {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .summary-box .label { font-size: 0.8rem; color: #888; margin-bottom: 6px; }
-        .summary-box .value { font-size: 1.6rem; font-weight: 700; color: #2c3e50; }
-
-        .empty-msg { text-align: center; color: #bbb; padding: 24px 0; font-style: italic; }
-
-        @media (max-width: 540px) {
-            .manual-grid { grid-template-columns: 1fr 1fr; }
-            .manual-grid .btn { grid-column: span 2; }
-            .timer-display { font-size: 2.5rem; }
-        }
-    </style>
+@media(max-width:480px){
+  #timerDisplay{font-size:2.4rem}
+  .sum-grid{grid-template-columns:1fr 1fr}
+  .bar-label{min-width:100px}
+}
+</style>
 </head>
 <body>
 
 <header>
-    <h1>⏱ Työajanseuranta</h1>
-    <div id="kello"></div>
+  <h1>⏱ Työajanseuranta</h1>
+  <span id="headerClock"></span>
 </header>
+
+<nav>
+  <button class="active" onclick="switchTab('home')">🏠 Etusivu</button>
+  <button onclick="switchTab('track')">▶ Seuranta</button>
+  <button onclick="switchTab('summary')">📋 Yhteenveto</button>
+  <button onclick="switchTab('calendar')">📅 Kalenteri</button>
+  <button onclick="switchTab('sites')">📍 Työkohteet</button>
+  <button onclick="switchTab('export')">📤 Vie raportti</button>
+</nav>
 
 <main>
 
-    <!-- Timer -->
-    <div class="card">
-        <h2>Ajastin</h2>
-        <div class="task-row">
-            <input type="text" id="tehtava" placeholder="Tehtävän nimi..." />
-            <select id="kategoria">
-                <option value="">– Kategoria –</option>
-                <option>Kehitys</option>
-                <option>Suunnittelu</option>
-                <option>Kokoukset</option>
-                <option>Testaus</option>
-                <option>Dokumentointi</option>
-                <option>Muu</option>
-            </select>
-        </div>
-        <div id="ajastinNaytto" class="timer-display">00:00:00</div>
-        <div class="btn-row">
-            <button class="btn btn-green" id="btnKaynnista" onclick="kaynnista()">▶ Käynnistä</button>
-            <button class="btn btn-red"   id="btnPysayta"  onclick="pysayta()" disabled>⏹ Pysäytä</button>
-            <button class="btn btn-gray"  id="btnNollaa"   onclick="nollaa()"  disabled>↺ Nollaa</button>
-        </div>
-    </div>
+<!-- HOME -->
+<div id="tab-home" class="tabs active">
+  <div id="activeBanner"></div>
+  <div class="card">
+    <div class="card-title">Tänään</div>
+    <div class="sum-grid" id="homeSummary"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tämän päivän kirjaukset</div>
+    <div id="homeTodayEntries"></div>
+  </div>
+</div>
 
-    <!-- Manual entry -->
-    <div class="card">
-        <h2>Manuaalinen kirjaus</h2>
-        <div class="manual-grid">
-            <div>
-                <label>Päivämäärä</label>
-                <input type="date" id="mPvm" />
-            </div>
-            <div>
-                <label>Alkoi</label>
-                <input type="time" id="mAlkoi" />
-            </div>
-            <div>
-                <label>Päättyi</label>
-                <input type="time" id="mPaattyi" />
-            </div>
-            <button class="btn btn-blue" onclick="kirjaaManuaalisesti()" style="align-self:end">+ Lisää</button>
-        </div>
-        <div class="task-row" style="margin-top:12px">
-            <input type="text" id="mTehtava" placeholder="Tehtävän nimi..." />
-            <select id="mKategoria">
-                <option value="">– Kategoria –</option>
-                <option>Kehitys</option>
-                <option>Suunnittelu</option>
-                <option>Kokoukset</option>
-                <option>Testaus</option>
-                <option>Dokumentointi</option>
-                <option>Muu</option>
-            </select>
-        </div>
-    </div>
+<!-- TRACK -->
+<div id="tab-track" class="tabs">
+  <div class="card">
+    <div class="card-title">Ajastin</div>
+    <div id="timerDisplay">00:00:00</div>
 
-    <!-- Summary -->
-    <div class="card" id="yhteenvetoKortti">
-        <h2>Yhteenveto</h2>
-        <div class="summary-grid">
-            <div class="summary-box">
-                <div class="label">Tänään</div>
-                <div class="value" id="sumTanaan">0:00</div>
-            </div>
-            <div class="summary-box">
-                <div class="label">Tällä viikolla</div>
-                <div class="value" id="sumViikko">0:00</div>
-            </div>
-            <div class="summary-box">
-                <div class="label">Tässä kuussa</div>
-                <div class="value" id="sumKuukausi">0:00</div>
-            </div>
-            <div class="summary-box">
-                <div class="label">Kirjauksia yhteensä</div>
-                <div class="value" id="sumLkm">0</div>
-            </div>
-        </div>
-    </div>
+    <label class="field-label">Työkohde</label>
+    <select id="trackSite"><option value="">– Valitse työkohde –</option></select>
 
-    <!-- Log -->
-    <div class="card">
-        <h2>Kirjaukset</h2>
-        <div id="logiSisalto"></div>
+    <label class="field-label">Tehtävätyyppi</label>
+    <select id="trackCategory">
+      <option value="demolition">Purku</option>
+      <option value="installation">Asennus</option>
+      <option value="cleaning">Siivous</option>
+      <option value="transport">Kuljetus</option>
+      <option value="material_handling">Materiaalin käsittely</option>
+      <option value="other">Muu</option>
+    </select>
+
+    <label class="field-label">Tehtävän kuvaus (valinnainen)</label>
+    <textarea id="trackNote" placeholder="Lyhyt kuvaus työtehtävästä..."></textarea>
+
+    <label class="field-label">Sijainti</label>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="detectGPS()">📡 Tunnista sijainti</button>
+    <div id="gpsStatus">Sijaintia ei tallennettu.</div>
+
+    <div style="margin-top:18px" class="btn-row">
+      <button class="btn btn-green" id="btnStart" onclick="startShift()" style="flex:1">▶ Aloita</button>
+      <button class="btn btn-red"   id="btnStop"  onclick="stopShift()"  style="flex:1" disabled>⏹ Lopeta</button>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tänään kirjatut vuorot</div>
+    <div id="trackTodayList"></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="tab-summary" class="tabs">
+  <div class="card">
+    <div class="card-title">Tämän päivän yhteenveto</div>
+    <div class="sum-grid" id="sumBoxes"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tunnit työkohteittain</div>
+    <div id="sumBySite"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tunnit tehtävätyypeittäin</div>
+    <div id="sumByCategory"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Kaikki kirjaukset tänään</div>
+    <div id="sumAllEntries"></div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div id="tab-calendar" class="tabs">
+  <div class="card">
+    <div class="cal-nav">
+      <button onclick="calMove(-1)">‹</button>
+      <strong id="calMonthLabel"></strong>
+      <button onclick="calMove(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+  <div class="card" id="calDetail" style="display:none">
+    <div class="card-title" id="calDetailTitle"></div>
+    <div id="calDetailEntries"></div>
+  </div>
+</div>
+
+<!-- SITES -->
+<div id="tab-sites" class="tabs">
+  <div class="card">
+    <div class="card-title">Työkohteet</div>
+    <div id="sitesList"></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="toggleSiteForm()">+ Lisää työkohde</button>
+    <div id="siteForm">
+      <label class="field-label">Kohteen nimi *</label>
+      <input id="sName" placeholder="Esim. Työmaa Helsinki">
+      <label class="field-label">Osoite</label>
+      <input id="sAddress" placeholder="Katuosoite">
+      <label class="field-label">Kaupunki</label>
+      <input id="sCity" placeholder="Helsinki">
+      <label class="field-label">Asiakas / Yritys</label>
+      <input id="sCustomer" placeholder="Asiakkaan nimi">
+      <label class="field-label">Lisätiedot (valinnainen)</label>
+      <textarea id="sNotes" placeholder="Muistiinpanoja..."></textarea>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-primary" onclick="saveSite()">Tallenna kohde</button>
+        <button class="btn btn-ghost" onclick="toggleSiteForm()">Peruuta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT -->
+<div id="tab-export" class="tabs">
+  <div class="card">
+    <div class="card-title">Vie raportti</div>
+    <label class="field-label">Työntekijän nimi</label>
+    <input id="exportWorkerName" placeholder="Oma nimi">
+    <label class="field-label">Aikaväli</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="flex:1;min-width:130px">
+        <label class="field-label" style="margin-top:4px">Alku</label>
+        <input type="date" id="exportFrom">
+      </div>
+      <div style="flex:1;min-width:130px">
+        <label class="field-label" style="margin-top:4px">Loppu</label>
+        <input type="date" id="exportTo">
+      </div>
+    </div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="exportCSV()">⬇ Lataa CSV</button>
+      <button class="btn btn-ghost"   onclick="exportJSON()">⬇ Lataa JSON</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Esikatselu</div>
+    <div id="exportPreview" style="font-size:.78rem;color:#555;overflow-x:auto;max-height:300px"></div>
+  </div>
+</div>
 
 </main>
 
 <script>
-    // ── State ──────────────────────────────────────────────────────────────────
-    let kirjaukset = JSON.parse(localStorage.getItem('tyoajat') || '[]');
-    let ajastinAlkoi = null;
-    let ajastinInterval = null;
-    let kulunutMs = 0;
+// ── Constants ─────────────────────────────────────────────
+const CAT = {
+  demolition:       'Purku',
+  installation:     'Asennus',
+  cleaning:         'Siivous',
+  transport:        'Kuljetus',
+  material_handling:'Materiaalin käsittely',
+  other:            'Muu'
+};
+const WD = ['Ma','Ti','Ke','To','Pe','La','Su'];
 
-    // ── Clock ──────────────────────────────────────────────────────────────────
-    function paivitaKello() {
-        document.getElementById('kello').textContent =
-            new Date().toLocaleTimeString('fi-FI');
-    }
-    paivitaKello();
-    setInterval(paivitaKello, 1000);
+// ── Storage ───────────────────────────────────────────────
+const getSites   = () => JSON.parse(localStorage.getItem('was_sites')   || '[]');
+const getEntries = () => JSON.parse(localStorage.getItem('was_entries') || '[]');
+const putSites   = v  => localStorage.setItem('was_sites',   JSON.stringify(v));
+const putEntries = v  => localStorage.setItem('was_entries', JSON.stringify(v));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
-    // ── Timer ──────────────────────────────────────────────────────────────────
-    function muotoileAika(ms) {
-        const s = Math.floor(ms / 1000);
-        const h = Math.floor(s / 3600);
-        const m = Math.floor((s % 3600) / 60);
-        const ss = s % 60;
-        return [h, m, ss].map(v => String(v).padStart(2, '0')).join(':');
-    }
+// ── Seed demo sites ───────────────────────────────────────
+(function seed() {
+  if (getSites().length) return;
+  putSites([
+    { id:uid(), name:'Työmaa Helsinki', address:'Mannerheimintie 1', city:'Helsinki', customer:'Rakennusliike Oy', notes:'' },
+    { id:uid(), name:'Työmaa Vantaa',   address:'Tikkurilantie 10',  city:'Vantaa',   customer:'Kiinteistö Oy Vantaa', notes:'' },
+    { id:uid(), name:'Työmaa Espoo',    address:'Espoonkatu 5',      city:'Espoo',    customer:'Espoo Rakennus Oy',    notes:'' },
+  ]);
+})();
 
-    function kaynnista() {
-        ajastinAlkoi = Date.now() - kulunutMs;
-        ajastinInterval = setInterval(() => {
-            kulunutMs = Date.now() - ajastinAlkoi;
-            const naytto = document.getElementById('ajastinNaytto');
-            naytto.textContent = muotoileAika(kulunutMs);
-            naytto.classList.add('running');
-        }, 500);
-        document.getElementById('btnKaynnista').disabled = true;
-        document.getElementById('btnPysayta').disabled = false;
-        document.getElementById('btnNollaa').disabled = false;
-    }
+// ── Date utils ────────────────────────────────────────────
+const pad = n => String(n).padStart(2,'0');
+const todayKey = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const dateKey  = d  => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const fmtTime  = iso => { if(!iso) return '–'; const d=new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 
-    function pysayta() {
-        clearInterval(ajastinInterval);
-        ajastinInterval = null;
-        document.getElementById('ajastinNaytto').classList.remove('running');
+function fmtDur(ms) {
+  if (!ms || ms < 0) return '0 min';
+  const m = Math.floor(ms/60000), h = Math.floor(m/60);
+  return h > 0 ? `${h}t ${m%60}min` : `${m}min`;
+}
+function fmtHrs(ms) {
+  if (!ms || ms < 0) return '0:00';
+  const m = Math.floor(ms/60000);
+  return `${Math.floor(m/60)}:${pad(m%60)}`;
+}
+function fmtDateFi(key) {
+  if (!key) return '';
+  const [y,mo,d] = key.split('-').map(Number);
+  return new Date(y,mo-1,d).toLocaleDateString('fi-FI',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
 
-        if (kulunutMs > 1000) {
-            const nyt = new Date();
-            const alku = new Date(ajastinAlkoi);
-            lisaaKirjaus({
-                id: Date.now(),
-                tehtava: document.getElementById('tehtava').value.trim() || 'Nimetön tehtävä',
-                kategoria: document.getElementById('kategoria').value || 'Muu',
-                pvm: alku.toISOString().slice(0, 10),
-                alkoi: alku.toTimeString().slice(0, 5),
-                paattyi: nyt.toTimeString().slice(0, 5),
-                kestoms: kulunutMs
-            });
-        }
-        document.getElementById('btnKaynnista').disabled = false;
-        document.getElementById('btnPysayta').disabled = true;
-    }
+// ── Clock ─────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById('headerClock').textContent = new Date().toLocaleTimeString('fi-FI');
+}, 1000);
+document.getElementById('headerClock').textContent = new Date().toLocaleTimeString('fi-FI');
 
-    function nollaa() {
-        clearInterval(ajastinInterval);
-        ajastinInterval = null;
-        kulunutMs = 0;
-        ajastinAlkoi = null;
-        const naytto = document.getElementById('ajastinNaytto');
-        naytto.textContent = '00:00:00';
-        naytto.classList.remove('running');
-        document.getElementById('btnKaynnista').disabled = false;
-        document.getElementById('btnPysayta').disabled = true;
-        document.getElementById('btnNollaa').disabled = true;
-    }
+// ── Tabs ──────────────────────────────────────────────────
+const TABS = ['home','track','summary','calendar','sites','export'];
+function switchTab(name) {
+  TABS.forEach(t => document.getElementById('tab-'+t).classList.toggle('active', t===name));
+  document.querySelectorAll('nav button').forEach((b,i) => b.classList.toggle('active', TABS[i]===name));
+  if (name==='home')     renderHome();
+  if (name==='track')    renderTrack();
+  if (name==='summary')  renderSummary();
+  if (name==='calendar') renderCalendar();
+  if (name==='sites')    renderSites();
+  if (name==='export')   initExport();
+}
 
-    // ── Manual entry ───────────────────────────────────────────────────────────
-    function kirjaaManuaalisesti() {
-        const pvm     = document.getElementById('mPvm').value;
-        const alkoi   = document.getElementById('mAlkoi').value;
-        const paattyi = document.getElementById('mPaattyi').value;
-        const tehtava = document.getElementById('mTehtava').value.trim();
-        const kat     = document.getElementById('mKategoria').value;
+// ── GPS ───────────────────────────────────────────────────
+let gpsCoords = null;
+function detectGPS() {
+  const el = document.getElementById('gpsStatus');
+  el.className=''; el.textContent='Haetaan sijaintia...';
+  if (!navigator.geolocation) { el.className='err'; el.textContent='Selain ei tue paikannusta.'; return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gpsCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
+      el.className='ok';
+      el.textContent=`✓ Sijainti tallennettu — ${gpsCoords.lat.toFixed(5)}, ${gpsCoords.lon.toFixed(5)} (±${gpsCoords.acc}m)`;
+    },
+    err => {
+      el.className='err';
+      el.textContent = err.code===1 ? 'Sijaintilupa evätty — jatka ilman GPS:ää.' : 'Sijainnin haku epäonnistui.';
+      gpsCoords = null;
+    },
+    { enableHighAccuracy:true, timeout:10000 }
+  );
+}
 
-        if (!pvm || !alkoi || !paattyi) { alert('Täytä päivämäärä, alkoi ja päättyi.'); return; }
+// ── Timer & shift ─────────────────────────────────────────
+let timerInterval = null;
+let shiftStart    = null;
+let activeShift   = null;
 
-        const alkoiMs   = new Date(pvm + 'T' + alkoi).getTime();
-        const paattyiMs = new Date(pvm + 'T' + paattyi).getTime();
-        if (paattyiMs <= alkoiMs) { alert('Päättymisajan on oltava aloitusajan jälkeen.'); return; }
+function startShift() {
+  const siteId = document.getElementById('trackSite').value;
+  if (!siteId) { alert('Valitse työkohde ensin.'); return; }
+  activeShift = {
+    siteId,
+    category: document.getElementById('trackCategory').value,
+    note:     document.getElementById('trackNote').value.trim(),
+    startISO: new Date().toISOString(),
+    gps:      gpsCoords ? {...gpsCoords} : null
+  };
+  shiftStart = Date.now();
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStop').disabled  = false;
+  document.getElementById('timerDisplay').classList.add('running');
+  timerInterval = setInterval(() => {
+    const ms = Date.now() - shiftStart;
+    const s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+    document.getElementById('timerDisplay').textContent=`${pad(h)}:${pad(m)}:${pad(ss)}`;
+    updateBanner(ms);
+  }, 500);
+}
 
-        lisaaKirjaus({
-            id: Date.now(),
-            tehtava: tehtava || 'Nimetön tehtävä',
-            kategoria: kat || 'Muu',
-            pvm,
-            alkoi,
-            paattyi,
-            kestoms: paattyiMs - alkoiMs
-        });
+function stopShift() {
+  if (!activeShift) return;
+  clearInterval(timerInterval); timerInterval=null;
+  const endISO = new Date().toISOString();
+  const ms = new Date(endISO) - new Date(activeShift.startISO);
+  const entry = { id:uid(), date:todayKey(), siteId:activeShift.siteId, category:activeShift.category,
+    note:activeShift.note, startISO:activeShift.startISO, endISO, durationMs:ms, gps:activeShift.gps };
+  putEntries([...getEntries(), entry]);
+  activeShift=null; shiftStart=null; gpsCoords=null;
+  document.getElementById('timerDisplay').textContent='00:00:00';
+  document.getElementById('timerDisplay').classList.remove('running');
+  document.getElementById('btnStart').disabled=false;
+  document.getElementById('btnStop').disabled=true;
+  document.getElementById('gpsStatus').textContent='Sijaintia ei tallennettu.';
+  document.getElementById('gpsStatus').className='';
+  document.getElementById('trackNote').value='';
+  document.getElementById('activeBanner').style.display='none';
+  renderTrackList();
+  renderHome();
+}
 
-        document.getElementById('mPvm').value = '';
-        document.getElementById('mAlkoi').value = '';
-        document.getElementById('mPaattyi').value = '';
-        document.getElementById('mTehtava').value = '';
-        document.getElementById('mKategoria').value = '';
-    }
+function updateBanner(ms) {
+  if (!activeShift) return;
+  const site = getSites().find(s=>s.id===activeShift.siteId);
+  const b = document.getElementById('activeBanner');
+  b.style.display='block';
+  b.innerHTML=`▶ <strong>${site?.name||'–'}</strong> &nbsp;·&nbsp; ${CAT[activeShift.category]} &nbsp;·&nbsp; ${fmtDur(ms)} käynnissä`;
+}
 
-    // ── Data helpers ───────────────────────────────────────────────────────────
-    function lisaaKirjaus(k) {
-        kirjaukset.unshift(k);
-        tallenna();
-        paivitaNakyma();
-    }
+// ── Entry card ────────────────────────────────────────────
+function entryCard(e, sites, deletable=true) {
+  const site = sites.find(s=>s.id===e.siteId);
+  const gpsStr = e.gps ? `<span style="font-size:.71rem;color:#aaa"> · 📍 ${e.gps.lat.toFixed(5)}, ${e.gps.lon.toFixed(5)}</span>` : '';
+  return `<div class="entry-item" id="ei-${e.id}">
+    ${deletable ? `<button class="entry-del" onclick="delEntry('${e.id}')" title="Poista">✕</button>` : ''}
+    <span class="entry-dur">${fmtDur(e.durationMs)}</span>
+    <div class="entry-site">${site?.name||'–'}</div>
+    <div class="entry-meta">
+      ${fmtTime(e.startISO)} – ${fmtTime(e.endISO)} &nbsp;
+      <span class="badge badge-blue">${CAT[e.category]||e.category}</span>
+      ${e.note ? ` &nbsp;<em>${e.note}</em>` : ''}${gpsStr}
+    </div>
+  </div>`;
+}
 
-    function poistaKirjaus(id) {
-        kirjaukset = kirjaukset.filter(k => k.id !== id);
-        tallenna();
-        paivitaNakyma();
-    }
+function delEntry(id) {
+  if (!confirm('Poistetaanko kirjaus?')) return;
+  putEntries(getEntries().filter(e=>e.id!==id));
+  const el = document.getElementById('ei-'+id);
+  if (el) el.remove();
+  renderHome(); renderSummary();
+}
 
-    function tallenna() {
-        localStorage.setItem('tyoajat', JSON.stringify(kirjaukset));
-    }
+const emptyMsg = '<p style="color:#bbb;font-style:italic;font-size:.85rem">Ei kirjauksia.</p>';
 
-    function muotoileKesto(ms) {
-        const totalMin = Math.floor(ms / 60000);
-        const h = Math.floor(totalMin / 60);
-        const m = totalMin % 60;
-        return h > 0 ? `${h}t ${m}min` : `${m}min`;
-    }
+// ── HOME ──────────────────────────────────────────────────
+function renderHome() {
+  const today = todayKey();
+  const entries = getEntries().filter(e=>e.date===today);
+  const sites   = getSites();
+  const totalMs = entries.reduce((s,e)=>s+e.durationMs,0);
+  document.getElementById('homeSummary').innerHTML = `
+    <div class="sum-box"><div class="val">${fmtHrs(totalMs)}</div><div class="lbl">Tänään yhteensä</div></div>
+    <div class="sum-box"><div class="val">${entries.length}</div><div class="lbl">Kirjausta</div></div>
+    <div class="sum-box"><div class="val">${new Set(entries.map(e=>e.siteId)).size}</div><div class="lbl">Kohdetta</div></div>
+  `;
+  document.getElementById('homeTodayEntries').innerHTML =
+    entries.length ? entries.map(e=>entryCard(e,sites)).join('') : emptyMsg;
+}
 
-    function msYhteensa(lista) {
-        return lista.reduce((s, k) => s + k.kestoms, 0);
-    }
+// ── TRACK ─────────────────────────────────────────────────
+function renderTrack() {
+  const sites = getSites();
+  document.getElementById('trackSite').innerHTML =
+    '<option value="">– Valitse työkohde –</option>' +
+    sites.map(s=>`<option value="${s.id}">${s.name} — ${s.city}</option>`).join('');
+  renderTrackList();
+}
+function renderTrackList() {
+  const entries = getEntries().filter(e=>e.date===todayKey());
+  const sites   = getSites();
+  document.getElementById('trackTodayList').innerHTML =
+    entries.length ? entries.map(e=>entryCard(e,sites)).join('') : emptyMsg;
+}
 
-    function tanaanStr() { return new Date().toISOString().slice(0, 10); }
+// ── SUMMARY ───────────────────────────────────────────────
+function renderSummary() {
+  const today   = todayKey();
+  const entries = getEntries().filter(e=>e.date===today);
+  const sites   = getSites();
+  const totalMs = entries.reduce((s,e)=>s+e.durationMs,0);
 
-    function viikkoAlku() {
-        const d = new Date();
-        const day = d.getDay() === 0 ? 6 : d.getDay() - 1; // Mon = 0
-        d.setDate(d.getDate() - day);
-        return d.toISOString().slice(0, 10);
-    }
+  document.getElementById('sumBoxes').innerHTML = `
+    <div class="sum-box"><div class="val">${fmtHrs(totalMs)}</div><div class="lbl">Tänään yhteensä</div></div>
+    <div class="sum-box"><div class="val">${entries.length}</div><div class="lbl">Kirjausta</div></div>
+    <div class="sum-box"><div class="val">${new Set(entries.map(e=>e.siteId)).size}</div><div class="lbl">Kohdetta</div></div>
+  `;
 
-    function kuukausiAlku() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-    }
+  // by site
+  const bySite = {};
+  entries.forEach(e=>{ bySite[e.siteId]=(bySite[e.siteId]||0)+e.durationMs; });
+  document.getElementById('sumBySite').innerHTML = Object.keys(bySite).length
+    ? Object.entries(bySite).sort((a,b)=>b[1]-a[1]).map(([id,ms])=>{
+        const s=sites.find(x=>x.id===id); const pct=totalMs?Math.round(ms/totalMs*100):0;
+        return `<div class="bar-row">
+          <span class="bar-label">${s?.name||'–'}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <span class="bar-val">${fmtHrs(ms)}</span>
+        </div>`;
+      }).join('') : emptyMsg;
 
-    // ── Render ─────────────────────────────────────────────────────────────────
-    function paivitaNakyma() {
-        paivitaYhteenveto();
-        paivitaLogi();
-    }
+  // by category
+  const byCat = {};
+  entries.forEach(e=>{ byCat[e.category]=(byCat[e.category]||0)+e.durationMs; });
+  document.getElementById('sumByCategory').innerHTML = Object.keys(byCat).length
+    ? Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat,ms])=>{
+        const pct=totalMs?Math.round(ms/totalMs*100):0;
+        return `<div class="bar-row">
+          <span class="bar-label">${CAT[cat]||cat}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:#c8602b"></div></div>
+          <span class="bar-val">${fmtHrs(ms)}</span>
+        </div>`;
+      }).join('') : emptyMsg;
 
-    function paivitaYhteenveto() {
-        const tanaan   = kirjaukset.filter(k => k.pvm === tanaanStr());
-        const viikko   = kirjaukset.filter(k => k.pvm >= viikkoAlku());
-        const kuukausi = kirjaukset.filter(k => k.pvm >= kuukausiAlku());
+  document.getElementById('sumAllEntries').innerHTML =
+    entries.length ? entries.map(e=>entryCard(e,sites)).join('') : emptyMsg;
+}
 
-        document.getElementById('sumTanaan').textContent    = muotoileKestoLyhyt(msYhteensa(tanaan));
-        document.getElementById('sumViikko').textContent    = muotoileKestoLyhyt(msYhteensa(viikko));
-        document.getElementById('sumKuukausi').textContent  = muotoileKestoLyhyt(msYhteensa(kuukausi));
-        document.getElementById('sumLkm').textContent       = kirjaukset.length;
-    }
+// ── CALENDAR ──────────────────────────────────────────────
+let calYear, calMonth, calSelected=null;
+(()=>{ const d=new Date(); calYear=d.getFullYear(); calMonth=d.getMonth(); })();
 
-    function muotoileKestoLyhyt(ms) {
-        const totalMin = Math.floor(ms / 60000);
-        const h = Math.floor(totalMin / 60);
-        const m = totalMin % 60;
-        return `${h}:${String(m).padStart(2, '0')}`;
-    }
+function calMove(dir) {
+  calMonth+=dir;
+  if (calMonth<0){calMonth=11;calYear--;} if (calMonth>11){calMonth=0;calYear++;}
+  renderCalendar();
+}
 
-    function paivitaLogi() {
-        const el = document.getElementById('logiSisalto');
-        if (kirjaukset.length === 0) {
-            el.innerHTML = '<p class="empty-msg">Ei kirjauksia vielä.</p>';
-            return;
-        }
+function renderCalendar() {
+  const label = new Date(calYear,calMonth,1).toLocaleDateString('fi-FI',{month:'long',year:'numeric'});
+  document.getElementById('calMonthLabel').textContent = label.charAt(0).toUpperCase()+label.slice(1);
 
-        const rivit = kirjaukset.map(k => `
-            <tr>
-                <td>${k.pvm}</td>
-                <td>${k.alkoi} – ${k.paattyi}</td>
-                <td>${k.tehtava}</td>
-                <td><span class="tag">${k.kategoria}</span></td>
-                <td>${muotoileKesto(k.kestoms)}</td>
-                <td><button class="del-btn" onclick="poistaKirjaus(${k.id})" title="Poista">✕</button></td>
-            </tr>`).join('');
+  const entries  = getEntries();
+  const withData = new Set(entries.map(e=>e.date));
+  const firstDow = (new Date(calYear,calMonth,1).getDay()+6)%7;
+  const days     = new Date(calYear,calMonth+1,0).getDate();
+  const today    = todayKey();
 
-        el.innerHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Päivä</th>
-                        <th>Aika</th>
-                        <th>Tehtävä</th>
-                        <th>Kategoria</th>
-                        <th>Kesto</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>${rivit}</tbody>
-            </table>`;
-    }
+  let html = WD.map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+  for (let i=0;i<firstDow;i++) html+='<div class="cal-day empty"></div>';
+  for (let d=1;d<=days;d++) {
+    const key=`${calYear}-${pad(calMonth+1)}-${pad(d)}`;
+    const cls=['cal-day',
+      key===today?'today':'',
+      withData.has(key)?'has-data':'',
+      key===calSelected?'selected':''
+    ].filter(Boolean).join(' ');
+    html+=`<div class="${cls}" onclick="calSelect('${key}')">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+  if (calSelected) calShowDetail(calSelected);
+}
 
-    // ── Init ───────────────────────────────────────────────────────────────────
-    document.getElementById('mPvm').value = tanaanStr();
-    paivitaNakyma();
+function calSelect(key) {
+  calSelected=key; renderCalendar(); calShowDetail(key);
+}
+
+function calShowDetail(key) {
+  const entries = getEntries().filter(e=>e.date===key);
+  const sites   = getSites();
+  const totalMs = entries.reduce((s,e)=>s+e.durationMs,0);
+  const detail  = document.getElementById('calDetail');
+  detail.style.display='block';
+  document.getElementById('calDetailTitle').textContent = fmtDateFi(key);
+  if (!entries.length) {
+    document.getElementById('calDetailEntries').innerHTML=emptyMsg; return;
+  }
+  const siteNames=[...new Set(entries.map(e=>sites.find(s=>s.id===e.siteId)?.name||'–'))].join(', ');
+  document.getElementById('calDetailEntries').innerHTML=`
+    <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;font-size:.85rem">
+      <span><strong>${fmtHrs(totalMs)}</strong> yhteensä</span>
+      <span><strong>${entries.length}</strong> kirjausta</span>
+      <span style="color:#666">${siteNames}</span>
+    </div>
+    ${entries.map(e=>entryCard(e,sites,false)).join('')}
+  `;
+}
+
+// ── SITES ─────────────────────────────────────────────────
+function renderSites() {
+  const sites   = getSites();
+  const entries = getEntries();
+  document.getElementById('sitesList').innerHTML = sites.length
+    ? sites.map(s=>{
+        const ms=entries.filter(e=>e.siteId===s.id).reduce((sum,e)=>sum+e.durationMs,0);
+        return `<div class="site-item">
+          <button class="site-del" onclick="deleteSite('${s.id}')" title="Poista">✕</button>
+          <div class="site-name">${s.name}</div>
+          ${s.address||s.city?`<div class="site-meta">${[s.address,s.city].filter(Boolean).join(', ')}</div>`:''}
+          ${s.customer?`<div class="site-meta">Asiakas: ${s.customer}</div>`:''}
+          ${s.notes?`<div class="site-meta" style="font-style:italic">${s.notes}</div>`:''}
+          <div style="margin-top:5px"><span class="badge badge-green">${fmtHrs(ms)} kirjattu</span></div>
+        </div>`;
+      }).join('') : emptyMsg;
+}
+
+function toggleSiteForm() {
+  document.getElementById('siteForm').classList.toggle('open');
+}
+
+function saveSite() {
+  const name = document.getElementById('sName').value.trim();
+  if (!name) { alert('Kohteen nimi vaaditaan.'); return; }
+  const sites = getSites();
+  sites.push({ id:uid(), name, address:document.getElementById('sAddress').value.trim(),
+    city:document.getElementById('sCity').value.trim(), customer:document.getElementById('sCustomer').value.trim(),
+    notes:document.getElementById('sNotes').value.trim() });
+  putSites(sites);
+  ['sName','sAddress','sCity','sCustomer','sNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('siteForm').classList.remove('open');
+  renderSites();
+}
+
+function deleteSite(id) {
+  if (!confirm('Poistetaanko työkohde? Aiemmat kirjaukset säilyvät.')) return;
+  putSites(getSites().filter(s=>s.id!==id));
+  renderSites();
+}
+
+// ── EXPORT ────────────────────────────────────────────────
+function initExport() {
+  const d=new Date();
+  if (!document.getElementById('exportFrom').value) {
+    document.getElementById('exportFrom').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-01`;
+    document.getElementById('exportTo').value=dateKey(d);
+  }
+  renderPreview();
+}
+
+['exportFrom','exportTo'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', renderPreview);
+});
+
+function exportRange() {
+  const from=document.getElementById('exportFrom').value;
+  const to  =document.getElementById('exportTo').value;
+  return getEntries().filter(e=>e.date>=from&&e.date<=to).sort((a,b)=>a.startISO.localeCompare(b.startISO));
+}
+
+function renderPreview() {
+  const entries=exportRange(), sites=getSites();
+  if (!entries.length) {
+    document.getElementById('exportPreview').innerHTML='<em style="color:#bbb">Ei kirjauksia valitulla aikavälillä.</em>';
+    return;
+  }
+  document.getElementById('exportPreview').innerHTML=`
+    <table style="width:100%;border-collapse:collapse;min-width:480px">
+      <tr style="background:#f4f4f4;font-weight:700">
+        ${['Päivä','Kohde','Tehtävä','Alkoi','Päättyi','Kesto'].map(h=>`<td style="padding:5px 8px">${h}</td>`).join('')}
+      </tr>
+      ${entries.map(e=>{
+        const s=sites.find(x=>x.id===e.siteId);
+        return `<tr style="border-bottom:1px solid #f0f0f0">
+          <td style="padding:5px 8px">${e.date}</td>
+          <td>${s?.name||'–'}</td><td>${CAT[e.category]||e.category}</td>
+          <td>${fmtTime(e.startISO)}</td><td>${fmtTime(e.endISO)}</td><td>${fmtDur(e.durationMs)}</td>
+        </tr>`;
+      }).join('')}
+    </table>`;
+}
+
+function buildRows() {
+  const sites  = getSites();
+  const worker = document.getElementById('exportWorkerName').value.trim()||'Tuntematon';
+  return exportRange().map(e=>{
+    const s=sites.find(x=>x.id===e.siteId);
+    return { date:e.date, worker, site:s?.name||'', city:s?.city||'', customer:s?.customer||'',
+      task:CAT[e.category]||e.category, start_time:fmtTime(e.startISO), end_time:fmtTime(e.endISO),
+      duration_min:Math.round(e.durationMs/60000), notes:e.note||'',
+      gps_lat:e.gps?.lat??'', gps_lon:e.gps?.lon??'' };
+  });
+}
+
+function download(content,name,mime) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:mime}));
+  a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function exportCSV() {
+  const rows=buildRows();
+  if (!rows.length){ alert('Ei kirjauksia valitulla aikavälillä.'); return; }
+  const keys=Object.keys(rows[0]);
+  const csv=[keys.join(';'),...rows.map(r=>keys.map(k=>`"${String(r[k]).replace(/"/g,'""')}"`).join(';'))].join('\r\n');
+  const f=document.getElementById('exportFrom').value, t=document.getElementById('exportTo').value;
+  download('﻿'+csv, `tyoajat_${f}_${t}.csv`, 'text/csv;charset=utf-8');
+}
+
+function exportJSON() {
+  const rows=buildRows();
+  if (!rows.length){ alert('Ei kirjauksia valitulla aikavälillä.'); return; }
+  const f=document.getElementById('exportFrom').value, t=document.getElementById('exportTo').value;
+  download(JSON.stringify(rows,null,2), `tyoajat_${f}_${t}.json`, 'application/json');
+}
+
+// ── Init ──────────────────────────────────────────────────
+renderHome();
+renderCalendar();
 </script>
 </body>
 </html>
