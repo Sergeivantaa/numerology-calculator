@@ -486,6 +486,7 @@ function getDeviceId() {
 // ══════════════════════════════════════════════════
 function seedIfEmpty() {
   if (db.list('workers').length > 0) return;
+  db.insert('workers',{name:'Sergei',role:'admin',phone:'+358466444935',email:'',company:'',hourlyRate:0,overtimeMultiplier:1.5,status:'active',active:true});
   var w1=db.insert('workers',{name:'Matti Virtanen',role:'admin',phone:'+358401234567',email:'matti@example.fi',company:'Rakennusliike Oy',hourlyRate:22,overtimeMultiplier:1.5,status:'active',active:true});
   var w2=db.insert('workers',{name:'Juha Korhonen',role:'supervisor',phone:'+358402345678',email:'juha@example.fi',company:'Rakennusliike Oy',hourlyRate:20,overtimeMultiplier:1.5,status:'active',active:true});
   var w3=db.insert('workers',{name:'Sari Mäkinen',role:'worker',phone:'+358403456789',email:'sari@example.fi',company:'Rakennusliike Oy',hourlyRate:18,overtimeMultiplier:1.5,status:'active',active:true});
@@ -1290,6 +1291,13 @@ function resetToDemo(){
 // INIT
 // ══════════════════════════════════════════════════
 seedIfEmpty();
+// Ensure Sergei's account exists even on existing installations
+(function(){
+  var existing = db.list('workers', function(w){ return w.phone === '+358466444935'; });
+  if (!existing.length) {
+    db.insert('workers', {name:'Sergei', role:'admin', phone:'+358466444935', email:'', company:'', hourlyRate:0, overtimeMultiplier:1.5, status:'active', active:true});
+  }
+})();
 getDeviceId();
 if(restoreSession()){showApp();}
 
