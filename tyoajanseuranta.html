@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Työajanseuranta</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header h1 { font-size: 1.4rem; font-weight: 600; }
+
+        #kello {
+            font-size: 1.1rem;
+            font-family: monospace;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+
+        main {
+            max-width: 820px;
+            margin: 32px auto;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .timer-display {
+            font-size: 3.5rem;
+            font-family: monospace;
+            font-weight: 700;
+            color: #2c3e50;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .timer-display.running { color: #27ae60; }
+
+        .task-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], select {
+            flex: 1;
+            min-width: 160px;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #2c3e50;
+        }
+
+        .btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.15s;
+        }
+
+        .btn:hover { opacity: 0.85; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-green  { background: #27ae60; color: white; }
+        .btn-red    { background: #e74c3c; color: white; }
+        .btn-blue   { background: #2980b9; color: white; }
+        .btn-gray   { background: #95a5a6; color: white; }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Manual entry */
+        .manual-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .manual-grid label { display: block; font-size: 0.8rem; color: #666; margin-bottom: 4px; }
+
+        input[type="date"], input[type="time"] {
+            width: 100%;
+            padding: 10px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        /* Log table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 2px solid #eee;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #888;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: #ecf0f1;
+            color: #555;
+        }
+
+        .del-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .del-btn:hover { background: #fdecea; }
+
+        /* Summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .summary-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .summary-box .label { font-size: 0.8rem; color: #888; margin-bottom: 6px; }
+        .summary-box .value { font-size: 1.6rem; font-weight: 700; color: #2c3e50; }
+
+        .empty-msg { text-align: center; color: #bbb; padding: 24px 0; font-style: italic; }
+
+        @media (max-width: 540px) {
+            .manual-grid { grid-template-columns: 1fr 1fr; }
+            .manual-grid .btn { grid-column: span 2; }
+            .timer-display { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>⏱ Työajanseuranta</h1>
+    <div id="kello"></div>
+</header>
+
+<main>
+
+    <!-- Timer -->
+    <div class="card">
+        <h2>Ajastin</h2>
+        <div class="task-row">
+            <input type="text" id="tehtava" placeholder="Tehtävän nimi..." />
+            <select id="kategoria">
+                <option value="">– Kategoria –</option>
+                <option>Kehitys</option>
+                <option>Suunnittelu</option>
+                <option>Kokoukset</option>
+                <option>Testaus</option>
+                <option>Dokumentointi</option>
+                <option>Muu</option>
+            </select>
+        </div>
+        <div id="ajastinNaytto" class="timer-display">00:00:00</div>
+        <div class="btn-row">
+            <button class="btn btn-green" id="btnKaynnista" onclick="kaynnista()">▶ Käynnistä</button>
+            <button class="btn btn-red"   id="btnPysayta"  onclick="pysayta()" disabled>⏹ Pysäytä</button>
+            <button class="btn btn-gray"  id="btnNollaa"   onclick="nollaa()"  disabled>↺ Nollaa</button>
+        </div>
+    </div>
+
+    <!-- Manual entry -->
+    <div class="card">
+        <h2>Manuaalinen kirjaus</h2>
+        <div class="manual-grid">
+            <div>
+                <label>Päivämäärä</label>
+                <input type="date" id="mPvm" />
+            </div>
+            <div>
+                <label>Alkoi</label>
+                <input type="time" id="mAlkoi" />
+            </div>
+            <div>
+                <label>Päättyi</label>
+                <input type="time" id="mPaattyi" />
+            </div>
+            <button class="btn btn-blue" onclick="kirjaaManuaalisesti()" style="align-self:end">+ Lisää</button>
+        </div>
+        <div class="task-row" style="margin-top:12px">
+            <input type="text" id="mTehtava" placeholder="Tehtävän nimi..." />
+            <select id="mKategoria">
+                <option value="">– Kategoria –</option>
+                <option>Kehitys</option>
+                <option>Suunnittelu</option>
+                <option>Kokoukset</option>
+                <option>Testaus</option>
+                <option>Dokumentointi</option>
+                <option>Muu</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card" id="yhteenvetoKortti">
+        <h2>Yhteenveto</h2>
+        <div class="summary-grid">
+            <div class="summary-box">
+                <div class="label">Tänään</div>
+                <div class="value" id="sumTanaan">0:00</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tällä viikolla</div>
+                <div class="value" id="sumViikko">0:00</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Tässä kuussa</div>
+                <div class="value" id="sumKuukausi">0:00</div>
+            </div>
+            <div class="summary-box">
+                <div class="label">Kirjauksia yhteensä</div>
+                <div class="value" id="sumLkm">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+        <h2>Kirjaukset</h2>
+        <div id="logiSisalto"></div>
+    </div>
+
+</main>
+
+<script>
+    // ── State ──────────────────────────────────────────────────────────────────
+    let kirjaukset = JSON.parse(localStorage.getItem('tyoajat') || '[]');
+    let ajastinAlkoi = null;
+    let ajastinInterval = null;
+    let kulunutMs = 0;
+
+    // ── Clock ──────────────────────────────────────────────────────────────────
+    function paivitaKello() {
+        document.getElementById('kello').textContent =
+            new Date().toLocaleTimeString('fi-FI');
+    }
+    paivitaKello();
+    setInterval(paivitaKello, 1000);
+
+    // ── Timer ──────────────────────────────────────────────────────────────────
+    function muotoileAika(ms) {
+        const s = Math.floor(ms / 1000);
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const ss = s % 60;
+        return [h, m, ss].map(v => String(v).padStart(2, '0')).join(':');
+    }
+
+    function kaynnista() {
+        ajastinAlkoi = Date.now() - kulunutMs;
+        ajastinInterval = setInterval(() => {
+            kulunutMs = Date.now() - ajastinAlkoi;
+            const naytto = document.getElementById('ajastinNaytto');
+            naytto.textContent = muotoileAika(kulunutMs);
+            naytto.classList.add('running');
+        }, 500);
+        document.getElementById('btnKaynnista').disabled = true;
+        document.getElementById('btnPysayta').disabled = false;
+        document.getElementById('btnNollaa').disabled = false;
+    }
+
+    function pysayta() {
+        clearInterval(ajastinInterval);
+        ajastinInterval = null;
+        document.getElementById('ajastinNaytto').classList.remove('running');
+
+        if (kulunutMs > 1000) {
+            const nyt = new Date();
+            const alku = new Date(ajastinAlkoi);
+            lisaaKirjaus({
+                id: Date.now(),
+                tehtava: document.getElementById('tehtava').value.trim() || 'Nimetön tehtävä',
+                kategoria: document.getElementById('kategoria').value || 'Muu',
+                pvm: alku.toISOString().slice(0, 10),
+                alkoi: alku.toTimeString().slice(0, 5),
+                paattyi: nyt.toTimeString().slice(0, 5),
+                kestoms: kulunutMs
+            });
+        }
+        document.getElementById('btnKaynnista').disabled = false;
+        document.getElementById('btnPysayta').disabled = true;
+    }
+
+    function nollaa() {
+        clearInterval(ajastinInterval);
+        ajastinInterval = null;
+        kulunutMs = 0;
+        ajastinAlkoi = null;
+        const naytto = document.getElementById('ajastinNaytto');
+        naytto.textContent = '00:00:00';
+        naytto.classList.remove('running');
+        document.getElementById('btnKaynnista').disabled = false;
+        document.getElementById('btnPysayta').disabled = true;
+        document.getElementById('btnNollaa').disabled = true;
+    }
+
+    // ── Manual entry ───────────────────────────────────────────────────────────
+    function kirjaaManuaalisesti() {
+        const pvm     = document.getElementById('mPvm').value;
+        const alkoi   = document.getElementById('mAlkoi').value;
+        const paattyi = document.getElementById('mPaattyi').value;
+        const tehtava = document.getElementById('mTehtava').value.trim();
+        const kat     = document.getElementById('mKategoria').value;
+
+        if (!pvm || !alkoi || !paattyi) { alert('Täytä päivämäärä, alkoi ja päättyi.'); return; }
+
+        const alkoiMs   = new Date(pvm + 'T' + alkoi).getTime();
+        const paattyiMs = new Date(pvm + 'T' + paattyi).getTime();
+        if (paattyiMs <= alkoiMs) { alert('Päättymisajan on oltava aloitusajan jälkeen.'); return; }
+
+        lisaaKirjaus({
+            id: Date.now(),
+            tehtava: tehtava || 'Nimetön tehtävä',
+            kategoria: kat || 'Muu',
+            pvm,
+            alkoi,
+            paattyi,
+            kestoms: paattyiMs - alkoiMs
+        });
+
+        document.getElementById('mPvm').value = '';
+        document.getElementById('mAlkoi').value = '';
+        document.getElementById('mPaattyi').value = '';
+        document.getElementById('mTehtava').value = '';
+        document.getElementById('mKategoria').value = '';
+    }
+
+    // ── Data helpers ───────────────────────────────────────────────────────────
+    function lisaaKirjaus(k) {
+        kirjaukset.unshift(k);
+        tallenna();
+        paivitaNakyma();
+    }
+
+    function poistaKirjaus(id) {
+        kirjaukset = kirjaukset.filter(k => k.id !== id);
+        tallenna();
+        paivitaNakyma();
+    }
+
+    function tallenna() {
+        localStorage.setItem('tyoajat', JSON.stringify(kirjaukset));
+    }
+
+    function muotoileKesto(ms) {
+        const totalMin = Math.floor(ms / 60000);
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        return h > 0 ? `${h}t ${m}min` : `${m}min`;
+    }
+
+    function msYhteensa(lista) {
+        return lista.reduce((s, k) => s + k.kestoms, 0);
+    }
+
+    function tanaanStr() { return new Date().toISOString().slice(0, 10); }
+
+    function viikkoAlku() {
+        const d = new Date();
+        const day = d.getDay() === 0 ? 6 : d.getDay() - 1; // Mon = 0
+        d.setDate(d.getDate() - day);
+        return d.toISOString().slice(0, 10);
+    }
+
+    function kuukausiAlku() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+    }
+
+    // ── Render ─────────────────────────────────────────────────────────────────
+    function paivitaNakyma() {
+        paivitaYhteenveto();
+        paivitaLogi();
+    }
+
+    function paivitaYhteenveto() {
+        const tanaan   = kirjaukset.filter(k => k.pvm === tanaanStr());
+        const viikko   = kirjaukset.filter(k => k.pvm >= viikkoAlku());
+        const kuukausi = kirjaukset.filter(k => k.pvm >= kuukausiAlku());
+
+        document.getElementById('sumTanaan').textContent    = muotoileKestoLyhyt(msYhteensa(tanaan));
+        document.getElementById('sumViikko').textContent    = muotoileKestoLyhyt(msYhteensa(viikko));
+        document.getElementById('sumKuukausi').textContent  = muotoileKestoLyhyt(msYhteensa(kuukausi));
+        document.getElementById('sumLkm').textContent       = kirjaukset.length;
+    }
+
+    function muotoileKestoLyhyt(ms) {
+        const totalMin = Math.floor(ms / 60000);
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        return `${h}:${String(m).padStart(2, '0')}`;
+    }
+
+    function paivitaLogi() {
+        const el = document.getElementById('logiSisalto');
+        if (kirjaukset.length === 0) {
+            el.innerHTML = '<p class="empty-msg">Ei kirjauksia vielä.</p>';
+            return;
+        }
+
+        const rivit = kirjaukset.map(k => `
+            <tr>
+                <td>${k.pvm}</td>
+                <td>${k.alkoi} – ${k.paattyi}</td>
+                <td>${k.tehtava}</td>
+                <td><span class="tag">${k.kategoria}</span></td>
+                <td>${muotoileKesto(k.kestoms)}</td>
+                <td><button class="del-btn" onclick="poistaKirjaus(${k.id})" title="Poista">✕</button></td>
+            </tr>`).join('');
+
+        el.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Päivä</th>
+                        <th>Aika</th>
+                        <th>Tehtävä</th>
+                        <th>Kategoria</th>
+                        <th>Kesto</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>${rivit}</tbody>
+            </table>`;
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    document.getElementById('mPvm').value = tanaanStr();
+    paivitaNakyma();
+</script>
+</body>
+</html>
