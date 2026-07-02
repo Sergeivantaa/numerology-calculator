@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>RETRO YARD</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#000; font-family:'VT323', monospace; }
+  #canvasWrap { position:fixed; inset:0; }
+  canvas { display:block; width:100%; height:100%; cursor: pointer; }
+
+  /* ==== LOGIN SCREEN ==== */
+  #loginScreen {
+    position:fixed; inset:0; z-index:50;
+    background: radial-gradient(circle at center, #1a1a2e 0%, #05050a 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#fff;
+  }
+  #loginScreen::before {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
+  }
+  .title {
+    font-family:'Press Start 2P', monospace;
+    font-size: clamp(24px, 6vw, 48px);
+    color:#ffc83c;
+    text-shadow: 4px 4px 0 #000, 0 0 20px rgba(255,200,60,0.5);
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+  }
+  .subtitle { font-size:20px; color:#888; letter-spacing:3px; margin-bottom:40px; }
+  #nickInput {
+    font-family:'VT323', monospace; font-size:22px;
+    width:280px; padding:12px; text-align:center;
+    background:#1e1e26; border:3px solid #ffc83c; color:#fff; outline:none;
+    margin-bottom:20px;
+  }
+  #playBtn {
+    font-family:'Press Start 2P', monospace; font-size:16px;
+    padding:16px 40px; background:#3ca03c; color:#fff; border:3px solid #fff;
+    cursor:pointer; letter-spacing:2px; box-shadow:0 6px 0 #1e621e;
+  }
+  #playBtn:active { box-shadow:0 2px 0 #1e621e; transform:translateY(4px); }
+  #loginHint { margin-top:18px; color:#666; font-size:18px; }
+
+  /* ==== CHARACTER CUSTOMIZATION ==== */
+  #customizeRow { display:flex; gap:28px; margin:10px 0 22px; }
+  .customizeGroup { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .customizeLabel { font-size:15px; color:#999; letter-spacing:1px; }
+  .swatchRow { display:flex; gap:6px; }
+  .swatch {
+    width:26px; height:26px; border:2px solid #444; cursor:pointer; box-sizing:border-box;
+  }
+  .swatch.selected { border-color:#fff; box-shadow:0 0 0 2px #ffc83c; }
+  #previewFigure { display:flex; flex-direction:column; align-items:center; margin-bottom:6px; }
+  .pfHead { width:26px; height:22px; margin-bottom:2px; }
+  .pfTorso { width:32px; height:34px; }
+  .pfLegs { display:flex; gap:2px; }
+  .pfLegs div { width:13px; height:22px; }
+
+  /* ==== LOBBY SCREEN ==== */
+  #lobbyScreen {
+    position:fixed; inset:0; z-index:45; display:none;
+    background: radial-gradient(circle at top, #23233a 0%, #0a0a12 100%);
+    color:#fff; flex-direction:column; align-items:center; padding-top:40px; box-sizing:border-box;
+    overflow-y:auto;
+  }
+  #lobbyTitle {
+    font-family:'Press Start 2P', monospace; font-size:28px; color:#ffc83c;
+    text-shadow:3px 3px 0 #000; letter-spacing:3px; margin-bottom:6px;
+  }
+  #lobbySub { color:#888; font-size:18px; margin-bottom:30px; letter-spacing:2px; }
+  #gameGrid { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; max-width:900px; padding:0 20px 40px; }
+  .gameCard {
+    width:240px; background:#1a1a24; border:3px solid #333; display:flex; flex-direction:column;
+  }
+  .gameThumb {
+    height:135px; display:flex; align-items:center; justify-content:center; position:relative;
+    font-family:'Press Start 2P', monospace; color:rgba(255,255,255,0.9); font-size:13px; text-align:center;
+    text-shadow:2px 2px 0 rgba(0,0,0,0.5);
+  }
+  .gameThumb .playerCount {
+    position:absolute; bottom:6px; right:8px; font-family:'VT323',monospace; font-size:16px;
+    background:rgba(0,0,0,0.5); padding:2px 8px;
+  }
+  .gameInfo { padding:12px; }
+  .gameName { font-size:20px; color:#ffc83c; margin-bottom:4px; }
+  .gameDesc { font-size:15px; color:#999; margin-bottom:12px; min-height:36px; }
+  .joinBtn {
+    width:100%; font-family:'Press Start 2P', monospace; font-size:12px;
+    padding:10px 0; background:#3ca03c; color:#fff; border:2px solid #fff; cursor:pointer;
+    letter-spacing:1px; box-shadow:0 4px 0 #1e621e;
+  }
+  .joinBtn:active { box-shadow:0 1px 0 #1e621e; transform:translateY(3px); }
+  .joinBtn.locked { background:#444; color:#888; cursor:not-allowed; box-shadow:0 4px 0 #222; }
+  #escHint { color:#555; font-size:16px; margin-top:auto; padding:16px; }
+
+  /* ==== HUD ==== */
+  #hud { position:fixed; inset:0; pointer-events:none; z-index:20; display:none; }
+  #nickTag {
+    position:absolute; top:16px; left:16px; font-size:20px; color:#ffc83c;
+    text-shadow:2px 2px 0 #000; background:rgba(0,0,0,0.4); padding:6px 14px; border:2px solid #ffc83c;
+  }
+  #controlsHint {
+    position:absolute; bottom:14px; left:16px; font-size:18px; color:#ccc;
+    text-shadow:1px 1px 0 #000; background:rgba(0,0,0,0.4); padding:6px 12px;
+  }
+  #invHint {
+    position:absolute; bottom:14px; right:16px; font-size:18px; color:#ffc83c;
+    background:rgba(0,0,0,0.5); border:2px solid #ffc83c; padding:6px 14px;
+  }
+  #clickHint {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-size:20px; color:#fff; background:rgba(0,0,0,0.6); padding:10px 20px;
+    border:2px solid #fff; text-align:center; display:block;
+  }
+  #pickupToast {
+    position:absolute; top:70px; left:16px; font-size:20px; color:#3ca03c;
+    background:rgba(0,0,0,0.5); padding:4px 12px; opacity:0; transition:opacity 0.3s;
+  }
+
+  /* ==== INVENTORY ==== */
+  #inventoryPanel {
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:420px; background:#14141a; border:3px solid #ffc83c; z-index:30; display:none;
+    color:#fff; pointer-events:auto;
+  }
+  #invTitleBar {
+    background:#2a2a32; padding:10px; text-align:center;
+    font-family:'Press Start 2P', monospace; font-size:14px; color:#ffc83c; letter-spacing:2px;
+  }
+  #invGrid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px; min-height:120px; }
+  .invSlot {
+    background:#232329; border:2px solid #555; aspect-ratio:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-size:15px; text-align:center; padding:4px;
+  }
+  .invSlot .cnt { color:#ffc83c; font-size:18px; }
+  #invClose { text-align:center; padding-bottom:12px; color:#777; font-size:16px; }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="title">RETRO YARD</div>
+  <div class="subtitle">-- web edition --</div>
+  <input id="nickInput" placeholder="Введи никнейм..." maxlength="16">
+
+  <div id="previewFigure">
+    <div class="pfHead" id="pfHead"></div>
+    <div class="pfTorso" id="pfTorso"></div>
+    <div class="pfLegs"><div id="pfLegL"></div><div id="pfLegR"></div></div>
+  </div>
+
+  <div id="customizeRow">
+    <div class="customizeGroup">
+      <div class="customizeLabel">HEAD</div>
+      <div class="swatchRow" data-part="head"></div>
+    </div>
+    <div class="customizeGroup">
+      <div class="customizeLabel">TORSO</div>
+      <div class="swatchRow" data-part="torso"></div>
+    </div>
+    <div class="customizeGroup">
+      <div class="customizeLabel">LEGS</div>
+      <div class="swatchRow" data-part="pants"></div>
+    </div>
+  </div>
+
+  <button id="playBtn">CONTINUE</button>
+  <div id="loginHint">WASD движение · Space прыжок · E инвентарь · ПКМ вращает камеру</div>
+</div>
+
+<div id="lobbyScreen">
+  <div id="lobbyTitle">GAME LOBBY</div>
+  <div id="lobbySub">выбери игру и жми JOIN</div>
+  <div id="gameGrid"></div>
+  <div id="escHint">ESC — вернуться в лобби во время игры</div>
+</div>
+
+<div id="hud">
+  <div id="nickTag"></div>
+  <div id="controlsHint">WASD — движение · SHIFT — бег · SPACE — прыжок · E — инвентарь · ПКМ — вращать камеру · колесо — зум · ESC — лобби</div>
+  <div id="invHint">Предметов: <span id="invCount">0</span></div>
+  <div id="pickupToast"></div>
+</div>
+
+<div id="inventoryPanel">
+  <div id="invTitleBar">INVENTORY</div>
+  <div id="invGrid"></div>
+  <div id="invClose">[E] закрыть</div>
+</div>
+
+<div id="canvasWrap"></div>
+
+<script src="assets/js/three.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ===================== AUDIO (retro synth, no external files) ===================== */
+  let audioCtx = null;
+  function ctx(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+  function beep(freq, dur, type, vol, sweepTo){
+    try{
+      const ac = ctx();
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = type || "square";
+      osc.frequency.setValueAtTime(freq, ac.currentTime);
+      if (sweepTo) osc.frequency.linearRampToValueAtTime(sweepTo, ac.currentTime + dur);
+      gain.gain.setValueAtTime(vol||0.15, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.start(); osc.stop(ac.currentTime + dur);
+    }catch(e){}
+  }
+  function sfxFootstep(){ beep(110 + Math.random()*20, 0.07, "square", 0.10); }
+  function sfxJump(){ beep(220, 0.16, "square", 0.18, 440); }
+  function sfxLand(){ beep(140, 0.10, "square", 0.16, 90); }
+  function sfxPickup(){ beep(660, 0.06, "square", 0.16, 990); }
+
+  /* ===================== PERSISTENT STORAGE (localStorage) ===================== */
+  const STORAGE_PREFIX = "retroYard.";
+  let nickname = "Player";
+  let inventory = []; // [{name, count}]
+  let charColors = { head:0xf2d74e, torso:0x1fa347, pants:0x2e4fa3 };
+
+  function loadSave(){
+    try{
+      const n = localStorage.getItem(STORAGE_PREFIX + "nickname");
+      if (n) nickname = n;
+    }catch(e){}
+    try{
+      const inv = localStorage.getItem(STORAGE_PREFIX + "inventory");
+      if (inv) inventory = JSON.parse(inv);
+    }catch(e){}
+    try{
+      const cc = localStorage.getItem(STORAGE_PREFIX + "charColors");
+      if (cc) charColors = JSON.parse(cc);
+    }catch(e){}
+  }
+  function saveNickname(n){
+    try{ localStorage.setItem(STORAGE_PREFIX + "nickname", n); }catch(e){}
+  }
+  function saveInventory(){
+    try{ localStorage.setItem(STORAGE_PREFIX + "inventory", JSON.stringify(inventory)); }catch(e){}
+  }
+  function saveCharColors(){
+    try{ localStorage.setItem(STORAGE_PREFIX + "charColors", JSON.stringify(charColors)); }catch(e){}
+  }
+
+  /* ===================== THREE.JS SETUP ===================== */
+  const wrap = document.getElementById("canvasWrap");
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x6fb7e0);
+  scene.fog = new THREE.Fog(0x6fb7e0, 25, 70);
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 200);
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  wrap.appendChild(renderer.domElement);
+
+  window.addEventListener("resize", ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x4a3d1f, 0.65));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+  sun.position.set(20, 30, 10);
+  scene.add(sun);
+
+  // Ground with retro checker texture
+  function makeCheckerTexture(){
+    const size = 256;
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const g = c.getContext("2d");
+    const cell = size/8;
+    for (let y=0;y<8;y++){
+      for (let x=0;x<8;x++){
+        g.fillStyle = (x+y)%2===0 ? "#5fae4a" : "#4f9a3e";
+        g.fillRect(x*cell, y*cell, cell, cell);
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(20,20);
+    tex.magFilter = THREE.NearestFilter;
+    return tex;
+  }
+  const groundMat = new THREE.MeshLambertMaterial({ map: makeCheckerTexture() });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(120,120), groundMat);
+  ground.rotation.x = -Math.PI/2;
+  scene.add(ground);
+
+  // Boundary walls (retro arena)
+  const wallMat = new THREE.MeshLambertMaterial({ color:0x8a5a3c, flatShading:true });
+  const arenaSize = 45;
+  [[0,-arenaSize],[0,arenaSize],[-arenaSize,0],[arenaSize,0]].forEach(([x,z], i)=>{
+    const horiz = (i<2);
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(horiz?arenaSize*2:2, 4, horiz?2:arenaSize*2), wallMat);
+    wall.position.set(x, 2, z);
+    scene.add(wall);
+  });
+
+  // Platforms
+  const platMat = new THREE.MeshLambertMaterial({ color:0xd9a441, flatShading:true });
+  const platforms = [
+    {x:8,y:1.5,z:5,w:5,h:1,d:5},
+    {x:14,y:3,z:2,w:4,h:1,d:4},
+    {x:-10,y:1,z:-8,w:6,h:1,d:6},
+    {x:-16,y:2.5,z:-8,w:4,h:1,d:4},
+  ];
+  platforms.forEach(p=>{
+    const m = new THREE.Mesh(new THREE.BoxGeometry(p.w,p.h,p.d), platMat);
+    m.position.set(p.x, p.y, p.z);
+    scene.add(m);
+  });
+
+  /* ===================== RETRO BLOCKY R-STYLE CHARACTER ===================== */
+  function buildCharacter(colors){
+    colors = colors || { head:0xf2d74e, torso:0x1fa347, pants:0x2e4fa3 };
+    const group = new THREE.Group();
+    const skin = new THREE.MeshLambertMaterial({ color:colors.head, flatShading:true });
+    const shirt = new THREE.MeshLambertMaterial({ color:colors.torso, flatShading:true });
+    const pants = new THREE.MeshLambertMaterial({ color:colors.pants, flatShading:true });
+    const armMat = skin;
+
+    const legH=1.0, legW=0.42, legD=0.42;
+    const torsoH=1.15, torsoW=1.0, torsoD=0.55;
+    const headS=0.85;
+    const armH=1.0, armW=0.4, armD=0.4;
+
+    const hipY = legH;
+
+    function limb(mat, w,h,d, pivotX, pivotY){
+      const pivot = new THREE.Group();
+      pivot.position.set(pivotX, pivotY, 0);
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+      mesh.position.set(0, -h/2, 0);
+      pivot.add(mesh);
+      return pivot;
+    }
+
+    const leftLeg = limb(pants, legW,legH,legD, -0.27, hipY);
+    const rightLeg = limb(pants, legW,legH,legD, 0.27, hipY);
+    group.add(leftLeg, rightLeg);
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(torsoW,torsoH,torsoD), shirt);
+    torso.position.set(0, hipY + torsoH/2, 0);
+    group.add(torso);
+
+    const shoulderY = hipY + torsoH - 0.12;
+    const leftArm = limb(armMat, armW,armH,armD, -(torsoW/2+armW/2), shoulderY);
+    const rightArm = limb(armMat, armW,armH,armD, (torsoW/2+armW/2), shoulderY);
+    group.add(leftArm, rightArm);
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(headS,headS,headS), skin);
+    head.position.set(0, hipY + torsoH + headS/2, 0);
+    group.add(head);
+
+    return { group, leftLeg, rightLeg, leftArm, rightArm, torso, head,
+      materials: { head:skin, torso:shirt, pants:pants } };
+  }
+
+  const player = buildCharacter();
+  player.group.position.set(0, 0, 8);
+  scene.add(player.group);
+
+  function applyCharColors(colors){
+    player.materials.head.color.set(colors.head);
+    player.materials.torso.color.set(colors.torso);
+    player.materials.pants.color.set(colors.pants);
+  }
+
+  /* ===================== PICKUP ITEMS ===================== */
+  const pickups = [];
+  function spawnPickup(name, color, geom, x, z, y, scaleY){
+    const mat = new THREE.MeshLambertMaterial({ color, flatShading:true });
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.set(x, y!==undefined?y:0.6, z);
+    if (scaleY) mesh.scale.y = scaleY;
+    scene.add(mesh);
+    pickups.push({ name, mesh, alive:true });
+  }
+  const coinGeom = new THREE.SphereGeometry(0.35, 8, 8);
+  const gemGeom = new THREE.OctahedronGeometry(0.4);
+  const keyGeom = new THREE.BoxGeometry(0.6, 0.15, 0.3);
+
+  spawnPickup("Gold Coin", 0xffd23c, coinGeom, 5, 0);
+  spawnPickup("Gold Coin", 0xffd23c, coinGeom, -6, 4);
+  spawnPickup("Gold Coin", 0xffd23c, coinGeom, 2, -10);
+  spawnPickup("Retro Gem", 0x9b4fdb, gemGeom, 8, 5, 2.3, 1.5);
+  spawnPickup("Retro Gem", 0x9b4fdb, gemGeom, -10, -8, 1.85, 1.5);
+  spawnPickup("Retro Gem", 0x9b4fdb, gemGeom, 14, 2, 3.85, 1.5);
+  spawnPickup("Old Key", 0xc0c0c0, keyGeom, -16, -8, 3.1);
+  spawnPickup("Old Key", 0xc0c0c0, keyGeom, 0, 15);
+  spawnPickup("Old Key", 0xc0c0c0, keyGeom, -20, 10);
+
+  /* ===================== INPUT ===================== */
+  const keys = {};
+  window.addEventListener("keydown", (e)=>{
+    keys[e.code] = true;
+    if (e.code === "KeyE") toggleInventory();
+  });
+  window.addEventListener("keyup", (e)=>{ keys[e.code] = false; });
+
+  let cameraYaw = 0;
+  let cameraPitch = 0.35;
+  let cameraDist = 8;
+  const zoomSteps = [4,6,8,10,14];
+  let zoomIndex = 2;
+
+  const canvas = renderer.domElement;
+  canvas.addEventListener("contextmenu", (e)=> e.preventDefault());
+
+  let rmbDown = false;
+  let lastMouseX = 0, lastMouseY = 0;
+
+  canvas.addEventListener("mousedown", (e)=>{
+    if (e.button === 2){
+      rmbDown = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    }
+  });
+  window.addEventListener("mouseup", (e)=>{
+    if (e.button === 2) rmbDown = false;
+  });
+  window.addEventListener("mousemove", (e)=>{
+    if (!rmbDown) return;
+    const dx = e.clientX - lastMouseX;
+    const dy = e.clientY - lastMouseY;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+    cameraYaw -= dx * 0.0045;
+    cameraPitch -= dy * 0.0030;
+    cameraPitch = Math.max(0.08, Math.min(1.2, cameraPitch));
+  });
+  canvas.addEventListener("wheel", (e)=>{
+    if (e.deltaY > 0) zoomIndex = Math.min(zoomSteps.length-1, zoomIndex+1);
+    else zoomIndex = Math.max(0, zoomIndex-1);
+    cameraDist = zoomSteps[zoomIndex];
+  });
+
+  /* ===================== INVENTORY UI ===================== */
+  let invOpen = false;
+  function toggleInventory(){
+    if (!started) return;
+    invOpen = !invOpen;
+    document.getElementById("inventoryPanel").style.display = invOpen ? "block" : "none";
+    renderInventory();
+  }
+  function renderInventory(){
+    const grid = document.getElementById("invGrid");
+    grid.innerHTML = "";
+    inventory.forEach(item=>{
+      const slot = document.createElement("div");
+      slot.className = "invSlot";
+      slot.innerHTML = "<div>"+item.name+"</div><div class='cnt'>x"+item.count+"</div>";
+      grid.appendChild(slot);
+    });
+    document.getElementById("invCount").textContent =
+      inventory.reduce((a,b)=>a+b.count,0);
+  }
+  function collectItem(name){
+    let entry = inventory.find(i=>i.name===name);
+    if (entry) entry.count++;
+    else inventory.push({name, count:1});
+    renderInventory();
+    saveInventory();
+    sfxPickup();
+    const toast = document.getElementById("pickupToast");
+    toast.textContent = "+1 " + name;
+    toast.style.opacity = "1";
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>{ toast.style.opacity = "0"; }, 1200);
+  }
+
+  /* ===================== GAME LOOP ===================== */
+  let started = false;
+  let velocityY = 0;
+  let grounded = true;
+  const GRAVITY = -24;
+  const JUMP_FORCE = 9.5;
+  const WALK_SPEED = 5.2;
+  const RUN_SPEED = 9.5;
+
+  let walkCycle = 0;
+  let footstepTimer = 0;
+  let wasFalling = false;
+
+  const clock = new THREE.Clock();
+
+  function groundHeightAt(x,z){
+    let h = 0;
+    platforms.forEach(p=>{
+      if (x > p.x-p.w/2 && x < p.x+p.w/2 && z > p.z-p.d/2 && z < p.z+p.d/2){
+        const top = p.y + p.h/2;
+        h = Math.max(h, top);
+      }
+    });
+    return h;
+  }
+
+  function animate(){
+    requestAnimationFrame(animate);
+    const dt = Math.min(clock.getDelta(), 0.05);
+    if (!started){ renderer.render(scene, camera); return; }
+
+    // Movement input relative to camera yaw
+    let inputForward = 0, inputRight = 0;
+    if (keys["KeyW"]) inputForward += 1;
+    if (keys["KeyS"]) inputForward -= 1;
+    if (keys["KeyD"]) inputRight += 1;
+    if (keys["KeyA"]) inputRight -= 1;
+
+    const moving = (inputForward !== 0 || inputRight !== 0) && !invOpen;
+    const running = keys["ShiftLeft"] || keys["ShiftRight"];
+    const speed = running ? RUN_SPEED : WALK_SPEED;
+
+    if (moving){
+      const len = Math.hypot(inputForward, inputRight);
+      const nf = inputForward/len, nr = inputRight/len;
+      // forward = direction character faces away from camera; right = perpendicular
+      const fx = Math.sin(cameraYaw), fz = Math.cos(cameraYaw);
+      const rx = Math.cos(cameraYaw), rz = -Math.sin(cameraYaw);
+      const worldX = fx*nf + rx*nr;
+      const worldZ = fz*nf + rz*nr;
+      player.group.position.x += worldX * speed * dt;
+      player.group.position.z += worldZ * speed * dt;
+
+      const targetAngle = Math.atan2(worldX, worldZ);
+      let da = targetAngle - player.group.rotation.y;
+      da = Math.atan2(Math.sin(da), Math.cos(da));
+      player.group.rotation.y += da * Math.min(1, dt*12);
+    }
+
+    // clamp inside arena
+    const lim = arenaSize - 2;
+    player.group.position.x = Math.max(-lim, Math.min(lim, player.group.position.x));
+    player.group.position.z = Math.max(-lim, Math.min(lim, player.group.position.z));
+
+    // gravity / jump
+    const floorY = groundHeightAt(player.group.position.x, player.group.position.z);
+    if (keys["Space"] && grounded && !invOpen){
+      velocityY = JUMP_FORCE;
+      grounded = false;
+      sfxJump();
+    }
+    velocityY += GRAVITY * dt;
+    player.group.position.y += velocityY * dt;
+
+    if (player.group.position.y <= floorY){
+      player.group.position.y = floorY;
+      if (!grounded && wasFalling) sfxLand();
+      velocityY = 0;
+      grounded = true;
+      wasFalling = false;
+    } else {
+      grounded = false;
+      if (velocityY < -1) wasFalling = true;
+    }
+
+    // walk animation
+    const maxSwing = running ? 0.9 : 0.65;
+    if (moving && grounded){
+      walkCycle += dt * (running ? 11 : 8);
+      const s = Math.sin(walkCycle) * maxSwing;
+      player.leftLeg.rotation.x = s;
+      player.rightLeg.rotation.x = -s;
+      player.leftArm.rotation.x = -s;
+      player.rightArm.rotation.x = s;
+
+      footstepTimer += dt;
+      const interval = running ? 0.22 : 0.34;
+      if (footstepTimer > interval){
+        footstepTimer = 0;
+        sfxFootstep();
+      }
+    } else if (!grounded){
+      player.leftLeg.rotation.x = 0.35;
+      player.rightLeg.rotation.x = 0.35;
+      player.leftArm.rotation.x = -0.6;
+      player.rightArm.rotation.x = -0.6;
+    } else {
+      player.leftLeg.rotation.x *= 0.8;
+      player.rightLeg.rotation.x *= 0.8;
+      player.leftArm.rotation.x *= 0.8;
+      player.rightArm.rotation.x *= 0.8;
+      walkCycle = 0;
+      footstepTimer = 0;
+    }
+
+    // pickups
+    pickups.forEach(p=>{
+      if (!p.alive) return;
+      const dx = p.mesh.position.x - player.group.position.x;
+      const dz = p.mesh.position.z - player.group.position.z;
+      const dy = p.mesh.position.y - (player.group.position.y + 1);
+      if (Math.hypot(dx,dz,dy) < 1.3){
+        p.alive = false;
+        p.mesh.visible = false;
+        collectItem(p.name);
+      } else {
+        p.mesh.rotation.y += dt*1.5;
+      }
+    });
+
+    // camera (retro, snap-follow, no smoothing)
+    const camX = player.group.position.x - Math.sin(cameraYaw)*Math.cos(cameraPitch)*cameraDist;
+    const camZ = player.group.position.z - Math.cos(cameraYaw)*Math.cos(cameraPitch)*cameraDist;
+    const camY = player.group.position.y + 1.6 + Math.sin(cameraPitch)*cameraDist;
+    camera.position.set(camX, camY, camZ);
+    camera.lookAt(player.group.position.x, player.group.position.y + 1.6, player.group.position.z);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  /* ===================== CHARACTER CUSTOMIZATION UI ===================== */
+  const PALETTE = {
+    head:  [0xf2d74e, 0xf5cfa0, 0xe8a33c, 0xd97a7a, 0xc47ee0, 0x7ecfe0],
+    torso: [0x1fa347, 0x2e6fdb, 0xdb3c3c, 0xdba33c, 0x8a3cdb, 0x333333],
+    pants: [0x2e4fa3, 0x2c2c34, 0x5c3a1e, 0x3ca03c, 0x7a1f1f, 0x555555],
+  };
+  function toCss(hex){ return "#" + hex.toString(16).padStart(6,"0"); }
+
+  function renderSwatches(){
+    document.querySelectorAll(".swatchRow").forEach(row=>{
+      const part = row.getAttribute("data-part");
+      row.innerHTML = "";
+      PALETTE[part].forEach(hex=>{
+        const sw = document.createElement("div");
+        sw.className = "swatch" + (charColors[part]===hex ? " selected" : "");
+        sw.style.background = toCss(hex);
+        sw.addEventListener("click", ()=>{
+          charColors[part] = hex;
+          applyCharColors(charColors);
+          updatePreview();
+          renderSwatches();
+        });
+        row.appendChild(sw);
+      });
+    });
+  }
+  function updatePreview(){
+    document.getElementById("pfHead").style.background = toCss(charColors.head);
+    document.getElementById("pfTorso").style.background = toCss(charColors.torso);
+    document.getElementById("pfLegL").style.background = toCss(charColors.pants);
+    document.getElementById("pfLegR").style.background = toCss(charColors.pants);
+  }
+
+  /* ===================== LOBBY / GAME LIST ===================== */
+  const GAMES = [
+    { id:"retroyard", name:"Retro Yard", desc:"Classic 3D obby & collect", players:312,
+      grad:"linear-gradient(135deg,#3ca03c,#1c5c1c)", icon:"★ RETRO ★", available:true },
+    { id:"skyrace", name:"Sky Race", desc:"Coming soon", players:0,
+      grad:"linear-gradient(135deg,#2e6fdb,#12315c)", icon:"SOON", available:false },
+    { id:"zombierush", name:"Zombie Rush", desc:"Coming soon", players:0,
+      grad:"linear-gradient(135deg,#a33232,#4a1414)", icon:"SOON", available:false },
+  ];
+
+  function renderLobby(){
+    const grid = document.getElementById("gameGrid");
+    grid.innerHTML = "";
+    GAMES.forEach(g=>{
+      const card = document.createElement("div");
+      card.className = "gameCard";
+      card.innerHTML =
+        "<div class='gameThumb' style='background:"+g.grad+"'>"+g.icon+
+        (g.available ? "<div class='playerCount'>"+g.players+" playing</div>" : "") +
+        "</div>" +
+        "<div class='gameInfo'>" +
+          "<div class='gameName'>"+g.name+"</div>" +
+          "<div class='gameDesc'>"+g.desc+"</div>" +
+          "<button class='joinBtn"+(g.available?"":" locked")+"'>"+(g.available?"JOIN":"SOON")+"</button>" +
+        "</div>";
+      const btn = card.querySelector(".joinBtn");
+      if (g.available){
+        btn.addEventListener("click", ()=> joinGame(g.id));
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  function showScreen(name){
+    document.getElementById("loginScreen").style.display = (name==="login") ? "flex" : "none";
+    document.getElementById("lobbyScreen").style.display = (name==="lobby") ? "flex" : "none";
+    document.getElementById("hud").style.display = (name==="playing") ? "block" : "none";
+  }
+
+  function joinGame(id){
+    // На сейчас реально играбельна только Retro Yard, остальные — заглушки под будущие игры
+    if (id !== "retroyard") return;
+    player.group.position.set(0, 0, 8);
+    velocityY = 0;
+    grounded = true;
+    showScreen("playing");
+    document.getElementById("nickTag").textContent = nickname;
+    started = true;
+  }
+
+  window.addEventListener("keydown", (e)=>{
+    if (e.code === "Escape" && started){
+      started = false;
+      invOpen = false;
+      document.getElementById("inventoryPanel").style.display = "none";
+      showScreen("lobby");
+    }
+  });
+
+  /* ===================== LOGIN FLOW ===================== */
+  loadSave();
+  document.getElementById("nickInput").value = nickname;
+  applyCharColors(charColors);
+  updatePreview();
+  renderSwatches();
+  renderInventory();
+
+  function confirmCustomize(){
+    let nick = document.getElementById("nickInput").value.trim();
+    if (!nick) nick = "Player";
+    nick = nick.slice(0,16);
+    nickname = nick;
+    saveNickname(nick);
+    saveCharColors();
+
+    renderLobby();
+    showScreen("lobby");
+  }
+  document.getElementById("playBtn").addEventListener("click", confirmCustomize);
+  document.getElementById("nickInput").addEventListener("keydown", (e)=>{
+    if (e.key === "Enter") confirmCustomize();
+  });
+
+})();
+</script>
+</body>
+</html>

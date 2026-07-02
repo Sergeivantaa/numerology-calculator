@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLOXYARD</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="topbar">
+  <div class="logo"><span class="logo-blox">BLOX</span><span class="logo-yard">YARD</span></div>
+  <nav id="mainNav">
+    <a href="#" data-screen="home">Home</a>
+    <a href="#" data-screen="games">Games</a>
+    <a href="#" data-screen="create">Create</a>
+    <a href="#" data-screen="market">Shop</a>
+    <a href="#" data-screen="avatar">Avatar</a>
+  </nav>
+  <div class="topbar-right">
+    <div class="notifWrap" id="notifWrapEl">
+      <button id="notifBtn" class="iconBtn" title="Updates" aria-label="Updates">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6v3.09c0 .48-.17.94-.47 1.31L4 15h16l-1.53-2.6a2 2 0 0 1-.47-1.31V8a6 6 0 0 0-6-6zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/></svg>
+        <span id="notifDot" class="notifDot hidden"></span>
+      </button>
+      <div id="notifPanel" class="notifPanel">
+        <div class="notifTitle">What's New</div>
+        <ul id="notifList"></ul>
+      </div>
+    </div>
+    <div class="bloxiesBadge">Bloxies: <span id="bloxiesCount">0</span><button id="buyBloxiesBtn" class="plusBtn" title="Buy Bloxies">+</button></div>
+    <div class="currency">Coins: <span id="currencyCount">0</span></div>
+    <div class="userChip"><span id="topNick">Player</span></div>
+    <button id="logoutBtn" class="smallBtn">Log Out</button>
+  </div>
+</div>
+
+<div id="buyBloxiesModal" class="modalOverlay">
+  <div class="modalCard">
+    <div class="modalTitleBar">BUY BLOXIES</div>
+    <div class="modalBody">
+      <div class="bloxiesNote">Bloxies are Bloxyard's premium currency. Purchases aren't available in this demo yet.</div>
+      <div class="bloxiesPackages" id="bloxiesPackages"></div>
+    </div>
+    <button id="closeBloxiesModal" class="modalCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<div id="globalToast" class="globalToast"></div>
+
+<div id="screen-login" class="screen">
+  <div class="loginCard">
+    <div class="loginLogo"><span class="logo-blox">BLOX</span><span class="logo-yard">YARD</span></div>
+    <div class="loginSub">the old-school block game platform</div>
+    <label for="loginUser">Username</label>
+    <input id="loginUser" type="text" maxlength="20" placeholder="Username" autocomplete="off">
+    <label for="loginPass">Password</label>
+    <input id="loginPass" type="password" maxlength="20" placeholder="Password" autocomplete="off">
+    <button id="loginBtn">Log In</button>
+    <div class="loginHint">Demo login &mdash; any username &amp; password works, no account needed.</div>
+  </div>
+</div>
+
+<div id="screen-home" class="screen">
+  <div class="pageWrap">
+    <aside class="sidebar">
+      <div class="panel userCard">
+        <div class="miniFigure">
+          <div class="mfHead" id="mfHead"></div>
+          <div class="mfTorso" id="mfTorso"></div>
+          <div class="mfLegs"><div id="mfLegL"></div><div id="mfLegR"></div></div>
+        </div>
+        <div class="userCardName" id="homeNick">Player</div>
+        <a href="#" data-screen="avatar" class="sidebarLink">Edit Avatar</a>
+      </div>
+      <div class="panel">
+        <ul class="sideNav">
+          <li><a href="#" data-screen="home">Home</a></li>
+          <li><a href="#" data-screen="games">Games</a></li>
+          <li><a href="#" data-screen="avatar">Avatar</a></li>
+        </ul>
+      </div>
+    </aside>
+    <main class="mainCol">
+      <div class="panel">
+        <div class="panelHeader">Featured Games</div>
+        <div class="panelBody gamesGrid" id="homeFeatured"></div>
+      </div>
+      <div class="panel">
+        <div class="panelHeader">Your Inventory</div>
+        <div class="panelBody invGridStatic" id="homeInventory"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="screen-games" class="screen">
+  <div class="pageWrap">
+    <main class="mainColWide">
+      <div class="panel">
+        <div class="panelHeader">All Games</div>
+        <div class="panelBody gamesGrid" id="gamesGrid"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="screen-create" class="screen">
+  <div id="createHud">
+    <div id="createPalette">
+      <button id="playtestBtn" class="paletteItem playtestItem">&#9654; Play My Build</button>
+      <div class="paletteTitle">PALETTE</div>
+      <button class="paletteItem" data-item="block">Block</button>
+      <div class="swatchRow" id="blockColorRow"></div>
+      <button class="paletteItem" data-item="rock">Rock</button>
+      <button class="paletteItem" data-item="tree">Tree</button>
+      <button id="clearBuildBtn" class="paletteItem clearItem">Clear All</button>
+    </div>
+    <div id="createHint">Click ground to place &middot; click an object to remove &middot; right-click &mdash; rotate camera &middot; wheel &mdash; zoom &middot; WASD &mdash; pan &middot; ESC &mdash; exit</div>
+    <div id="playtestHud">
+      <div id="playtestBanner">Playtesting your build &mdash; WASD move &middot; SHIFT run &middot; SPACE jump</div>
+      <button id="stopPlaytestBtn">&#9632; Stop Playtesting (ESC)</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-market" class="screen">
+  <div class="pageWrap">
+    <main class="mainColWide">
+      <div class="panel">
+        <div class="panelHeader">Marketplace &mdash; spend Coins earned from playing</div>
+        <div class="panelBody" id="marketSections"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="screen-avatar" class="screen">
+  <div class="pageWrap">
+    <main class="mainColWide avatarLayout">
+      <div class="panel avatarPreviewPanel">
+        <div class="panelHeader">Avatar</div>
+        <div class="panelBody avatarCanvasArea" id="avatarCanvasArea"></div>
+      </div>
+      <div class="panel avatarCustomizePanel">
+        <div class="panelHeader">Customize</div>
+        <div class="panelBody">
+          <label for="avatarNickInput">Nickname</label>
+          <input id="avatarNickInput" type="text" maxlength="16" placeholder="Nickname">
+
+          <div class="customizeRow">
+            <div class="customizeGroup">
+              <div class="customizeLabel">HEAD</div>
+              <div class="swatchRow" data-part="head"></div>
+            </div>
+            <div class="customizeGroup">
+              <div class="customizeLabel">TORSO</div>
+              <div class="swatchRow" data-part="torso"></div>
+            </div>
+            <div class="customizeGroup">
+              <div class="customizeLabel">LEGS</div>
+              <div class="swatchRow" data-part="pants"></div>
+            </div>
+          </div>
+
+          <div class="customizeGroup hatGroup">
+            <div class="customizeLabel"><label><input type="checkbox" id="hatToggle"> HAT</label></div>
+            <div class="swatchRow" data-part="hat"></div>
+          </div>
+
+          <div class="customizeGroup">
+            <div class="customizeLabel">FACE</div>
+            <div class="chipRow" id="faceOptions"></div>
+          </div>
+
+          <div class="customizeGroup" id="hoodieRow">
+            <div class="customizeLabel"><label><input type="checkbox" id="hoodieToggle"> HOODIE (owned)</label></div>
+            <div class="chipRow" id="hoodieOptions"></div>
+          </div>
+
+          <div class="customizeGroup" id="backpackRow">
+            <div class="customizeLabel"><label><input type="checkbox" id="backpackToggle"> BACKPACK (owned)</label></div>
+            <div class="chipRow" id="backpackOptions"></div>
+          </div>
+
+          <div class="customizeGroup" id="pantsStyleRow">
+            <div class="customizeLabel">PANTS STYLE (owned)</div>
+            <div class="chipRow" id="pantsStyleOptions"></div>
+          </div>
+
+          <div class="customizeGroup" id="petRow">
+            <div class="customizeLabel">PET (owned)</div>
+            <div class="chipRow" id="petOptions"></div>
+          </div>
+
+          <button id="avatarSaveBtn">Save Avatar</button>
+          <div id="avatarSavedMsg" class="savedMsg">Saved!</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="screen-play" class="screen">
+  <div id="playHud">
+    <div id="nickTag"></div>
+    <div id="gameTitleTag"></div>
+    <div id="controlsHint">WASD &mdash; move &middot; SHIFT &mdash; run &middot; SPACE &mdash; jump &middot; E &mdash; inventory &middot; right-click &mdash; rotate camera &middot; wheel &mdash; zoom &middot; ESC &mdash; menu</div>
+    <div id="invHint">Coins: <span id="invCount">0</span></div>
+    <div id="pickupToast"></div>
+    <div id="centerToast"></div>
+    <div id="zombieHud">
+      <div id="waveText">Wave 1 / 5</div>
+      <div id="hpBarWrap"><div id="hpBarFill"></div><div id="hpText">100 / 100</div></div>
+    </div>
+    <div id="timerHud">Time left: <span id="timerText">90</span>s</div>
+  </div>
+  <div id="inventoryPanel">
+    <div id="invTitleBar">INVENTORY</div>
+    <div id="invGrid"></div>
+    <div id="invClose">[E] close</div>
+  </div>
+  <div id="pauseMenu">
+    <div id="pauseTitleBar">GAME MENU</div>
+    <div id="pauseBody">
+      <div class="pauseLobbyHeader">In this game (<span id="pauseLobbyCount">1</span>)</div>
+      <div id="pauseLobbyList"></div>
+      <div class="pauseButtons">
+        <button id="resumeBtn" class="pauseBtn resumeBtn">RESUME</button>
+        <button id="leaveBtn" class="pauseBtn leaveBtn">LEAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="canvasWrap"></div>
+
+<script src="../assets/js/three.min.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/avatarBuilder.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/updates.js"></script>
+<script src="js/marketItems.js"></script>
+<script src="js/pet.js"></script>
+<script src="js/avatarPreview.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/games/retroyard.js"></script>
+<script src="js/games/skyrace.js"></script>
+<script src="js/games/zombierush.js"></script>
+<script src="js/games/lavarush.js"></script>
+<script src="js/games/maze.js"></script>
+<script src="js/games/registry.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
