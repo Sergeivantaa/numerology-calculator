@@ -134,7 +134,7 @@
   <div id="playHud">
     <div id="nickTag"></div>
     <div id="gameTitleTag"></div>
-    <div id="controlsHint">WASD &mdash; move &middot; SHIFT &mdash; run &middot; SPACE &mdash; jump &middot; E &mdash; inventory &middot; right-click &mdash; rotate camera &middot; wheel &mdash; zoom &middot; ESC &mdash; exit</div>
+    <div id="controlsHint">WASD &mdash; move &middot; SHIFT &mdash; run &middot; SPACE &mdash; jump &middot; E &mdash; inventory &middot; right-click &mdash; rotate camera &middot; wheel &mdash; zoom &middot; ESC &mdash; menu</div>
     <div id="invHint">Coins: <span id="invCount">0</span></div>
     <div id="pickupToast"></div>
     <div id="centerToast"></div>
@@ -143,6 +143,17 @@
     <div id="invTitleBar">INVENTORY</div>
     <div id="invGrid"></div>
     <div id="invClose">[E] close</div>
+  </div>
+  <div id="pauseMenu">
+    <div id="pauseTitleBar">GAME MENU</div>
+    <div id="pauseBody">
+      <div class="pauseLobbyHeader">In this game (<span id="pauseLobbyCount">1</span>)</div>
+      <div id="pauseLobbyList"></div>
+      <div class="pauseButtons">
+        <button id="resumeBtn" class="pauseBtn resumeBtn">RESUME</button>
+        <button id="leaveBtn" class="pauseBtn leaveBtn">LEAVE</button>
+      </div>
+    </div>
   </div>
 </div>
 

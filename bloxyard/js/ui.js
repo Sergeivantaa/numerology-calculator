@@ -43,12 +43,15 @@ function renderMiniFigure(charColors){
   document.getElementById('mfLegR').style.background = toCss(charColors.pants);
 }
 
-function gameCard(game, onPlay){
+function gameCard(game, onPlay, activeGameId){
+  // There's no real multiplayer backend here, so the only honest player
+  // count we have is "are you, the local player, currently in this game".
+  const playing = game.id === activeGameId ? 1 : 0;
   const card = document.createElement('div');
   card.className = 'gameCard';
   card.innerHTML =
     "<div class='gameThumb' style='background:" + game.grad + "'>" + game.badge +
-    (game.available ? "<div class='playerCount'>" + game.playing + ' playing</div>' : '') +
+    (game.available ? "<div class='playerCount'>" + playing + ' playing</div>' : '') +
     '</div>' +
     "<div class='gameInfo'>" +
       "<div class='gameName'>" + game.name + '</div>' +
@@ -60,9 +63,9 @@ function gameCard(game, onPlay){
   return card;
 }
 
-function renderGameGrid(containerEl, games, onPlay){
+function renderGameGrid(containerEl, games, onPlay, activeGameId){
   containerEl.innerHTML = '';
-  games.forEach(g => containerEl.appendChild(gameCard(g, onPlay)));
+  games.forEach(g => containerEl.appendChild(gameCard(g, onPlay, activeGameId)));
 }
 
 function renderInventoryGrid(containerEl, inventory){
@@ -150,9 +153,28 @@ function renderNotifList(updates){
   });
 }
 
+function renderPlayerList(players){
+  const list = document.getElementById('pauseLobbyList');
+  list.innerHTML = '';
+  players.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'playerRow';
+    row.innerHTML =
+      "<div class='playerDot" + (p.you ? ' you' : '') + "'></div>" +
+      "<div class='playerName'>" + p.nickname + (p.you ? ' (you)' : '') + '</div>';
+    list.appendChild(row);
+  });
+  document.getElementById('pauseLobbyCount').textContent = players.length;
+}
+
+function togglePauseMenu(open){
+  document.getElementById('pauseMenu').classList.toggle('active', open);
+}
+
 window.Bloxyard.UI = {
   PALETTE, initNav, showScreen, renderTopbar, renderMiniFigure, renderGameGrid,
   renderInventoryGrid, renderSwatches, showPickupToast, showCenterToast,
   setNickTag, setGameTitleTag, setInvCount, toggleInventoryPanel, showSavedMsg,
   setNotifDotVisible, toggleNotifPanel, renderNotifList,
+  renderPlayerList, togglePauseMenu,
 };

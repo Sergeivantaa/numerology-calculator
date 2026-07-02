@@ -18,7 +18,9 @@
 
   let currentScreen = 'login';
   let invOpen = false;
+  let pauseOpen = false;
   let currentLevel = null;
+  let currentGameId = null;
   let playerChar = null;
   let motionState = null;
 
@@ -34,11 +36,11 @@
     if (name !== 'play') engine.setActive(false);
 
     if (name === 'home'){
-      ui.renderGameGrid(document.getElementById('homeFeatured'), GAMES, startGame);
+      ui.renderGameGrid(document.getElementById('homeFeatured'), GAMES, startGame, currentGameId);
       ui.renderInventoryGrid(document.getElementById('homeInventory'), profile.inventory);
       refreshChrome();
     } else if (name === 'games'){
-      ui.renderGameGrid(document.getElementById('gamesGrid'), GAMES, startGame);
+      ui.renderGameGrid(document.getElementById('gamesGrid'), GAMES, startGame, currentGameId);
       refreshChrome();
     } else if (name === 'avatar'){
       avatarPreview.setCharacter(profile.charColors, profile.accessories);
@@ -64,6 +66,9 @@
 
   document.getElementById('logoutBtn').addEventListener('click', ()=>{
     if (currentScreen === 'play') engine.setActive(false);
+    currentGameId = null;
+    pauseOpen = false;
+    ui.togglePauseMenu(false);
     goScreen('login');
   });
 
@@ -136,6 +141,7 @@
     engine.clearScene();
     engine.resetCamera();
     currentLevel = game.create(engine.scene);
+    currentGameId = id;
 
     playerChar = buildCharacter(profile.charColors, profile.accessories);
     playerChar.group.position.set(currentLevel.spawn.x, currentLevel.spawn.y, currentLevel.spawn.z);
@@ -143,7 +149,9 @@
 
     motionState = createMotionState();
     invOpen = false;
+    pauseOpen = false;
     ui.toggleInventoryPanel(false, profile.inventory);
+    ui.togglePauseMenu(false);
     ui.setNickTag(profile.nickname);
     ui.setGameTitleTag(game.name);
     ui.setInvCount(storage.totalCurrency(profile.inventory));
@@ -155,13 +163,24 @@
 
   function exitGame(){
     engine.setActive(false);
+    pauseOpen = false;
+    ui.togglePauseMenu(false);
+    currentGameId = null;
     goScreen('games');
+  }
+
+  function togglePause(){
+    pauseOpen = !pauseOpen;
+    if (pauseOpen){
+      ui.renderPlayerList([{ nickname: profile.nickname, you: true }]);
+    }
+    ui.togglePauseMenu(pauseOpen);
   }
 
   function gameLoop(dt){
     const { moving, running, grounded } = stepMotion(dt, {
       keys: engine.keys,
-      invOpen,
+      invOpen: invOpen || pauseOpen,
       playerGroup: playerChar.group,
       state: motionState,
       cameraYaw: engine.camState.yaw,
@@ -188,10 +207,20 @@
     engine.followCamera(playerChar.group.position);
   }
 
+  document.getElementById('resumeBtn').addEventListener('click', ()=>{ togglePause(); audio.sfxClick(); });
+  document.getElementById('leaveBtn').addEventListener('click', exitGame);
+
   window.addEventListener('keydown', (e)=>{
     if (currentScreen !== 'play') return;
-    if (e.code === 'Escape') exitGame();
-    if (e.code === 'KeyE'){
+    if (e.code === 'Escape'){
+      if (invOpen){
+        invOpen = false;
+        ui.toggleInventoryPanel(false, profile.inventory);
+      } else {
+        togglePause();
+      }
+    }
+    if (e.code === 'KeyE' && !pauseOpen){
       invOpen = !invOpen;
       ui.toggleInventoryPanel(invOpen, profile.inventory);
     }

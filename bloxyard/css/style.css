@@ -246,6 +246,35 @@ canvas { display:block; width:100%; height:100%; cursor:pointer; }
 #invGrid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px; min-height:120px; }
 #invClose { text-align:center; padding-bottom:12px; color:#888; font-size:12px; }
 
+/* ==== PAUSE MENU (in-game, ESC) ==== */
+#pauseMenu {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:360px; background:#fff; border:2px solid #245686; border-radius:4px; z-index:35; display:none;
+  pointer-events:auto;
+}
+#pauseMenu.active { display:block; }
+#pauseTitleBar {
+  background:linear-gradient(#4a86c8, #386d9e); color:#fff; padding:10px; text-align:center;
+  font-weight:bold; font-size:13px; letter-spacing:1px; border-radius:2px 2px 0 0;
+}
+#pauseBody { padding:16px; }
+.pauseLobbyHeader { font-size:12px; font-weight:bold; color:#777; margin-bottom:8px; letter-spacing:0.3px; }
+#pauseLobbyList { display:flex; flex-direction:column; gap:2px; margin-bottom:16px; max-height:180px; overflow-y:auto; }
+.playerRow { display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:3px; }
+.playerRow:nth-child(odd) { background:#f5f5f5; }
+.playerDot { width:9px; height:9px; border-radius:50%; background:#aaa; flex-shrink:0; }
+.playerDot.you { background:#3aa43a; }
+.playerName { font-size:13px; color:#333; }
+.pauseButtons { display:flex; gap:10px; }
+.pauseBtn {
+  flex:1; font-family:inherit; font-weight:bold; font-size:13px; padding:10px 0;
+  border-radius:3px; cursor:pointer; color:#fff;
+}
+.resumeBtn { background:#3aa43a; border:1px solid #237023; }
+.resumeBtn:hover { background:#48b848; }
+.leaveBtn { background:#c0392b; border:1px solid #7c2117; }
+.leaveBtn:hover { background:#d8483a; }
+
 @media (max-width: 720px) {
   .pageWrap { flex-direction:column; }
   .sidebar { width:100%; }
