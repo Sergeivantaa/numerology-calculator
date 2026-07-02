@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLOXYARD</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="topbar">
+  <div class="logo"><span class="logo-blox">BLOX</span><span class="logo-yard">YARD</span></div>
+  <nav id="mainNav">
+    <a href="#" data-screen="home">Home</a>
+    <a href="#" data-screen="games">Games</a>
+    <a href="#" data-screen="avatar">Avatar</a>
+  </nav>
+  <div class="topbar-right">
+    <div class="currency">Coins: <span id="currencyCount">0</span></div>
+    <div class="userChip"><span id="topNick">Player</span></div>
+    <button id="logoutBtn" class="smallBtn">Log Out</button>
+  </div>
+</div>
+
+<div id="screen-login" class="screen">
+  <div class="loginCard">
+    <div class="loginLogo"><span class="logo-blox">BLOX</span><span class="logo-yard">YARD</span></div>
+    <div class="loginSub">the old-school block game platform</div>
+    <label for="loginUser">Username</label>
+    <input id="loginUser" type="text" maxlength="20" placeholder="Username" autocomplete="off">
+    <label for="loginPass">Password</label>
+    <input id="loginPass" type="password" maxlength="20" placeholder="Password" autocomplete="off">
+    <button id="loginBtn">Log In</button>
+    <div class="loginHint">Demo login &mdash; any username &amp; password works, no account needed.</div>
+  </div>
+</div>
+
+<div id="screen-home" class="screen">
+  <div class="pageWrap">
+    <aside class="sidebar">
+      <div class="panel userCard">
+        <div class="miniFigure">
+          <div class="mfHead" id="mfHead"></div>
+          <div class="mfTorso" id="mfTorso"></div>
+          <div class="mfLegs"><div id="mfLegL"></div><div id="mfLegR"></div></div>
+        </div>
+        <div class="userCardName" id="homeNick">Player</div>
+        <a href="#" data-screen="avatar" class="sidebarLink">Edit Avatar</a>
+      </div>
+      <div class="panel">
+        <ul class="sideNav">
+          <li><a href="#" data-screen="home">Home</a></li>
+          <li><a href="#" data-screen="games">Games</a></li>
+          <li><a href="#" data-screen="avatar">Avatar</a></li>
+        </ul>
+      </div>
+    </aside>
+    <main class="mainCol">
+      <div class="panel">
+        <div class="panelHeader">Featured Games</div>
+        <div class="panelBody gamesGrid" id="homeFeatured"></div>
+      </div>
+      <div class="panel">
+        <div class="panelHeader">Your Inventory</div>
+        <div class="panelBody invGridStatic" id="homeInventory"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="screen-games" class="screen">
+  <div class="pageWrap">
+    <main class="mainColWide">
+      <div class="panel">
+        <div class="panelHeader">All Games</div>
+        <div class="panelBody gamesGrid" id="gamesGrid"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="screen-avatar" class="screen">
+  <div class="pageWrap">
+    <main class="mainColWide avatarLayout">
+      <div class="panel avatarPreviewPanel">
+        <div class="panelHeader">Avatar</div>
+        <div class="panelBody avatarCanvasArea" id="avatarCanvasArea"></div>
+      </div>
+      <div class="panel avatarCustomizePanel">
+        <div class="panelHeader">Customize</div>
+        <div class="panelBody">
+          <label for="avatarNickInput">Nickname</label>
+          <input id="avatarNickInput" type="text" maxlength="16" placeholder="Nickname">
+
+          <div class="customizeRow">
+            <div class="customizeGroup">
+              <div class="customizeLabel">HEAD</div>
+              <div class="swatchRow" data-part="head"></div>
+            </div>
+            <div class="customizeGroup">
+              <div class="customizeLabel">TORSO</div>
+              <div class="swatchRow" data-part="torso"></div>
+            </div>
+            <div class="customizeGroup">
+              <div class="customizeLabel">LEGS</div>
+              <div class="swatchRow" data-part="pants"></div>
+            </div>
+          </div>
+
+          <div class="customizeGroup hatGroup">
+            <div class="customizeLabel"><label><input type="checkbox" id="hatToggle"> HAT</label></div>
+            <div class="swatchRow" data-part="hat"></div>
+          </div>
+
+          <button id="avatarSaveBtn">Save Avatar</button>
+          <div id="avatarSavedMsg" class="savedMsg">Saved!</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="screen-play" class="screen">
+  <div id="playHud">
+    <div id="nickTag"></div>
+    <div id="gameTitleTag"></div>
+    <div id="controlsHint">WASD &mdash; move &middot; SHIFT &mdash; run &middot; SPACE &mdash; jump &middot; E &mdash; inventory &middot; right-click &mdash; rotate camera &middot; wheel &mdash; zoom &middot; ESC &mdash; exit</div>
+    <div id="invHint">Coins: <span id="invCount">0</span></div>
+    <div id="pickupToast"></div>
+    <div id="centerToast"></div>
+  </div>
+  <div id="inventoryPanel">
+    <div id="invTitleBar">INVENTORY</div>
+    <div id="invGrid"></div>
+    <div id="invClose">[E] close</div>
+  </div>
+</div>
+
+<div id="canvasWrap"></div>
+
+<script src="../assets/js/three.min.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/avatarBuilder.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/avatarPreview.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/games/retroyard.js"></script>
+<script src="js/games/skyrace.js"></script>
+<script src="js/games/registry.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
