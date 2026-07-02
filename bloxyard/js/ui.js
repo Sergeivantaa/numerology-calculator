@@ -23,7 +23,7 @@ function showScreen(name){
     el.classList.toggle('active', el.id === 'screen-' + name);
   });
   document.getElementById('topbar').classList.toggle('active', name !== 'login' && name !== 'play');
-  document.getElementById('canvasWrap').classList.toggle('active', name === 'play');
+  document.getElementById('canvasWrap').classList.toggle('active', name === 'play' || name === 'create');
   document.querySelectorAll('#mainNav a, .sideNav a').forEach(a=>{
     a.classList.toggle('active', a.getAttribute('data-screen') === name);
   });
@@ -86,7 +86,7 @@ function renderInventoryGrid(containerEl, inventory){
 }
 
 function renderSwatches(charColors, accessories, onChangeColor, onChangeHatColor){
-  document.querySelectorAll('.swatchRow').forEach(row=>{
+  document.querySelectorAll('#screen-avatar .swatchRow[data-part]').forEach(row=>{
     const part = row.getAttribute('data-part');
     row.innerHTML = '';
     PALETTE[part].forEach(hex=>{
@@ -171,10 +171,57 @@ function togglePauseMenu(open){
   document.getElementById('pauseMenu').classList.toggle('active', open);
 }
 
+function renderBloxiesPackages(packages, onBuy){
+  const wrap = document.getElementById('bloxiesPackages');
+  wrap.innerHTML = '';
+  packages.forEach(pkg=>{
+    const card = document.createElement('div');
+    card.className = 'bloxiesPackageCard';
+    card.innerHTML =
+      "<div class='bloxiesAmount'>" + pkg.amount + ' Bloxies</div>' +
+      "<div class='bloxiesPrice'>" + pkg.price + '</div>' +
+      "<button class='bloxiesBuyBtn'>BUY</button>";
+    card.querySelector('.bloxiesBuyBtn').addEventListener('click', ()=> onBuy(pkg));
+    wrap.appendChild(card);
+  });
+}
+
+function toggleBuyBloxiesModal(open){
+  document.getElementById('buyBloxiesModal').classList.toggle('open', open);
+}
+
+function showGlobalToast(text, duration){
+  const toast = document.getElementById('globalToast');
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=> toast.classList.remove('show'), duration || 2400);
+}
+
+function setZombieHudVisible(visible){
+  document.getElementById('zombieHud').classList.toggle('active', visible);
+}
+
+function updateZombieHp(hp, maxHp){
+  const pct = Math.max(0, Math.min(100, (hp/maxHp)*100));
+  const fill = document.getElementById('hpBarFill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct > 50
+    ? 'linear-gradient(#4fbf4f,#2f8f2f)'
+    : (pct > 20 ? 'linear-gradient(#e0b23c,#b8860b)' : 'linear-gradient(#e05c3c,#a83a1e)');
+  document.getElementById('hpText').textContent = Math.ceil(hp) + ' / ' + maxHp;
+}
+
+function updateZombieWave(wave, maxWave){
+  document.getElementById('waveText').textContent = 'Wave ' + wave + ' / ' + maxWave;
+}
+
 window.Bloxyard.UI = {
   PALETTE, initNav, showScreen, renderTopbar, renderMiniFigure, renderGameGrid,
   renderInventoryGrid, renderSwatches, showPickupToast, showCenterToast,
   setNickTag, setGameTitleTag, setInvCount, toggleInventoryPanel, showSavedMsg,
   setNotifDotVisible, toggleNotifPanel, renderNotifList,
   renderPlayerList, togglePauseMenu,
+  renderBloxiesPackages, toggleBuyBloxiesModal, showGlobalToast,
+  setZombieHudVisible, updateZombieHp, updateZombieWave,
 };

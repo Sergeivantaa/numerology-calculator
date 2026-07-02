@@ -231,6 +231,24 @@ canvas { display:block; width:100%; height:100%; cursor:pointer; }
   color:#fff; text-shadow:2px 2px 0 #000; background:rgba(0,0,0,0.55); padding:16px 28px; border-radius:4px;
   opacity:0; transition:opacity 0.3s; text-align:center;
 }
+#zombieHud {
+  position:absolute; bottom:14px; left:50%; transform:translateX(-50%); display:none;
+  flex-direction:column; align-items:center; gap:5px;
+}
+#zombieHud.active { display:flex; }
+#waveText {
+  font-size:12px; font-weight:bold; color:#eee; text-shadow:1px 1px 0 #000;
+  background:rgba(0,0,0,0.45); padding:3px 12px; border-radius:3px;
+}
+#hpBarWrap {
+  position:relative; width:220px; height:20px; background:rgba(0,0,0,0.5);
+  border:2px solid #7c2117; border-radius:3px; overflow:hidden;
+}
+#hpBarFill { height:100%; width:100%; background:linear-gradient(#4fbf4f,#2f8f2f); transition:width 0.2s, background 0.2s; }
+#hpText {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:bold; color:#fff; text-shadow:1px 1px 0 #000;
+}
 
 /* ==== INVENTORY PANEL (in-game) ==== */
 #inventoryPanel {
@@ -274,6 +292,79 @@ canvas { display:block; width:100%; height:100%; cursor:pointer; }
 .resumeBtn:hover { background:#48b848; }
 .leaveBtn { background:#c0392b; border:1px solid #7c2117; }
 .leaveBtn:hover { background:#d8483a; }
+
+/* ==== BLOXIES BADGE + BUY MODAL ==== */
+.bloxiesBadge {
+  display:flex; align-items:center; gap:6px;
+  background:#6a3fc0; color:#fff; font-weight:bold; font-size:13px;
+  padding:5px 6px 5px 10px; border-radius:3px; border:1px solid #4a2a8c;
+}
+.plusBtn {
+  width:20px; height:20px; line-height:1; font-family:inherit; font-weight:bold; font-size:14px;
+  background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.5); border-radius:3px;
+  cursor:pointer; padding:0;
+}
+.plusBtn:hover { background:rgba(255,255,255,0.35); }
+
+.modalOverlay {
+  position:fixed; inset:0; z-index:70; display:none;
+  background:rgba(0,0,0,0.5); align-items:center; justify-content:center;
+}
+.modalOverlay.open { display:flex; }
+.modalCard { width:440px; max-width:90vw; background:#fff; border-radius:4px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+.modalTitleBar {
+  background:linear-gradient(#4a86c8, #386d9e); color:#fff; padding:12px; text-align:center;
+  font-weight:bold; font-size:14px; letter-spacing:1px;
+}
+.modalBody { padding:18px; }
+.bloxiesNote { font-size:12px; color:#777; line-height:1.5; margin-bottom:16px; text-align:center; }
+.bloxiesPackages { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.bloxiesPackageCard { border:1px solid #ddd; border-radius:3px; padding:12px; text-align:center; background:#fafafa; }
+.bloxiesAmount { font-weight:bold; color:#6a3fc0; font-size:14px; margin-bottom:2px; }
+.bloxiesPrice { font-size:12px; color:#888; margin-bottom:10px; }
+.bloxiesBuyBtn {
+  width:100%; font-family:inherit; font-weight:bold; font-size:12px; padding:7px 0;
+  background:#3aa43a; color:#fff; border:1px solid #237023; border-radius:3px; cursor:pointer;
+}
+.bloxiesBuyBtn:hover { background:#48b848; }
+.modalCloseBtn {
+  width:100%; font-family:inherit; font-weight:bold; font-size:12px; padding:10px 0;
+  background:#eee; color:#555; border:none; border-top:1px solid #ddd; cursor:pointer;
+}
+.modalCloseBtn:hover { background:#e2e2e2; }
+
+.globalToast {
+  position:fixed; top:60px; left:50%; transform:translateX(-50%); z-index:80;
+  background:#222; color:#fff; font-size:13px; font-weight:bold; padding:10px 18px; border-radius:4px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3); opacity:0; pointer-events:none; transition:opacity 0.25s;
+}
+.globalToast.show { opacity:1; }
+
+/* ==== CREATE (EDITOR) ==== */
+/* The screen itself must not capture clicks — they need to reach the
+   canvas underneath so raycasting can place/remove objects. */
+#screen-create { pointer-events:none; }
+#createHud { position:fixed; inset:0; pointer-events:none; z-index:20; display:none; }
+#screen-create.active #createHud { display:block; }
+#createPalette {
+  position:absolute; top:64px; left:16px; width:180px; background:#fff; border:2px solid #245686;
+  border-radius:4px; padding:12px; pointer-events:auto;
+}
+.paletteTitle { font-weight:bold; font-size:12px; color:#245686; letter-spacing:1px; margin-bottom:8px; }
+.paletteItem {
+  display:block; width:100%; font-family:inherit; font-weight:bold; font-size:12px;
+  padding:8px 0; margin-bottom:6px; background:#f2f2f2; color:#333; border:1px solid #ccc;
+  border-radius:3px; cursor:pointer; text-align:center;
+}
+.paletteItem:hover { background:#e6e6e6; }
+.paletteItem.selected { background:#3aa43a; color:#fff; border-color:#237023; }
+.clearItem { background:#c0392b; color:#fff; border-color:#7c2117; margin-top:6px; }
+.clearItem:hover { background:#d8483a; }
+#blockColorRow { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+#createHint {
+  position:absolute; bottom:14px; left:16px; font-size:12px; color:#eee;
+  text-shadow:1px 1px 0 #000; background:rgba(0,0,0,0.45); padding:6px 12px; border-radius:3px;
+}
 
 @media (max-width: 720px) {
   .pageWrap { flex-direction:column; }

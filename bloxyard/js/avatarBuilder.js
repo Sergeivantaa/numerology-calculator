@@ -59,14 +59,46 @@ function getFaceTexture(){
   return sharedFaceTexture;
 }
 
-function buildCharacter(colors, accessories){
+// Angry X-eyes + frown decal for zombies, same transparent-plane approach
+// as the regular smiley so it drops onto any head shape.
+let sharedZombieFaceTexture = null;
+function getZombieFaceTexture(){
+  if (sharedZombieFaceTexture) return sharedZombieFaceTexture;
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+
+  g.strokeStyle = '#1a1a1a';
+  g.lineWidth = 9;
+  g.lineCap = 'round';
+  [[73,93,103,123],[103,93,73,123]].forEach(([x1,y1,x2,y2])=>{
+    g.beginPath(); g.moveTo(x1,y1); g.lineTo(x2,y2); g.stroke();
+  });
+  [[153,93,183,123],[183,93,153,123]].forEach(([x1,y1,x2,y2])=>{
+    g.beginPath(); g.moveTo(x1,y1); g.lineTo(x2,y2); g.stroke();
+  });
+
+  g.lineWidth = 10;
+  g.beginPath();
+  g.arc(128, 175, 46, 1.12*Math.PI, 1.88*Math.PI);
+  g.stroke();
+
+  sharedZombieFaceTexture = new THREE.CanvasTexture(c);
+  sharedZombieFaceTexture.anisotropy = 4;
+  return sharedZombieFaceTexture;
+}
+
+function buildCharacter(colors, accessories, faceType){
   colors = colors || DEFAULT_COLORS;
   accessories = accessories || DEFAULT_ACCESSORIES;
 
   const group = new THREE.Group();
-  const skin = new THREE.MeshLambertMaterial({ color:colors.head });
-  const shirt = new THREE.MeshLambertMaterial({ color:colors.torso });
-  const pants = new THREE.MeshLambertMaterial({ color:colors.pants });
+  // Phong + modest specular gives the glossy "plastic toy" sheen real
+  // Roblox avatars have, instead of a flat matte look.
+  const plasticProps = { shininess:70, specular:0x555555 };
+  const skin = new THREE.MeshPhongMaterial({ color:colors.head, ...plasticProps });
+  const shirt = new THREE.MeshPhongMaterial({ color:colors.torso, ...plasticProps });
+  const pants = new THREE.MeshPhongMaterial({ color:colors.pants, ...plasticProps });
   const armMat = skin;
 
   const legH=1.0, legW=0.42, legD=0.42;
@@ -113,13 +145,14 @@ function buildCharacter(colors, accessories){
   head.receiveShadow = true;
   group.add(head);
 
-  const faceMat = new THREE.MeshBasicMaterial({ map: getFaceTexture(), transparent:true, depthWrite:false });
+  const faceTex = faceType === 'zombie' ? getZombieFaceTexture() : getFaceTexture();
+  const faceMat = new THREE.MeshBasicMaterial({ map: faceTex, transparent:true, depthWrite:false });
   const face = new THREE.Mesh(new THREE.PlaneGeometry(headS*0.72, headS*0.72), faceMat);
   face.position.set(0, head.position.y, headS/2 + 0.04);
   group.add(face);
 
   let hat = null;
-  const hatMat = new THREE.MeshLambertMaterial({ color: accessories.hatColor });
+  const hatMat = new THREE.MeshPhongMaterial({ color: accessories.hatColor, ...plasticProps });
   if (accessories.hat){
     const hatGeom = roundedBoxGeometry(0.95, 0.32, 0.95, 0.08);
     hat = new THREE.Mesh(hatGeom, hatMat);

@@ -13,6 +13,7 @@
   <nav id="mainNav">
     <a href="#" data-screen="home">Home</a>
     <a href="#" data-screen="games">Games</a>
+    <a href="#" data-screen="create">Create</a>
     <a href="#" data-screen="avatar">Avatar</a>
   </nav>
   <div class="topbar-right">
@@ -26,11 +27,25 @@
         <ul id="notifList"></ul>
       </div>
     </div>
+    <div class="bloxiesBadge">Bloxies: <span id="bloxiesCount">0</span><button id="buyBloxiesBtn" class="plusBtn" title="Buy Bloxies">+</button></div>
     <div class="currency">Coins: <span id="currencyCount">0</span></div>
     <div class="userChip"><span id="topNick">Player</span></div>
     <button id="logoutBtn" class="smallBtn">Log Out</button>
   </div>
 </div>
+
+<div id="buyBloxiesModal" class="modalOverlay">
+  <div class="modalCard">
+    <div class="modalTitleBar">BUY BLOXIES</div>
+    <div class="modalBody">
+      <div class="bloxiesNote">Bloxies are Bloxyard's premium currency. Purchases aren't available in this demo yet.</div>
+      <div class="bloxiesPackages" id="bloxiesPackages"></div>
+    </div>
+    <button id="closeBloxiesModal" class="modalCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<div id="globalToast" class="globalToast"></div>
 
 <div id="screen-login" class="screen">
   <div class="loginCard">
@@ -89,6 +104,20 @@
   </div>
 </div>
 
+<div id="screen-create" class="screen">
+  <div id="createHud">
+    <div id="createPalette">
+      <div class="paletteTitle">PALETTE</div>
+      <button class="paletteItem" data-item="block">Block</button>
+      <div class="swatchRow" id="blockColorRow"></div>
+      <button class="paletteItem" data-item="rock">Rock</button>
+      <button class="paletteItem" data-item="tree">Tree</button>
+      <button id="clearBuildBtn" class="paletteItem clearItem">Clear All</button>
+    </div>
+    <div id="createHint">Click ground to place &middot; click an object to remove &middot; right-click &mdash; rotate camera &middot; wheel &mdash; zoom &middot; WASD &mdash; pan &middot; ESC &mdash; exit</div>
+  </div>
+</div>
+
 <div id="screen-avatar" class="screen">
   <div class="pageWrap">
     <main class="mainColWide avatarLayout">
@@ -138,6 +167,10 @@
     <div id="invHint">Coins: <span id="invCount">0</span></div>
     <div id="pickupToast"></div>
     <div id="centerToast"></div>
+    <div id="zombieHud">
+      <div id="waveText">Wave 1 / 5</div>
+      <div id="hpBarWrap"><div id="hpBarFill"></div><div id="hpText">100 / 100</div></div>
+    </div>
   </div>
   <div id="inventoryPanel">
     <div id="invTitleBar">INVENTORY</div>
@@ -170,7 +203,9 @@
 <script src="js/ui.js"></script>
 <script src="js/games/retroyard.js"></script>
 <script src="js/games/skyrace.js"></script>
+<script src="js/games/zombierush.js"></script>
 <script src="js/games/registry.js"></script>
+<script src="js/editor.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

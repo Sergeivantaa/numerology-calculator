@@ -51,12 +51,32 @@ function createEngine(container){
   let updateFn = null;
   let active = false;
 
-  function followCamera(target){
-    const camX = target.x - Math.sin(camState.yaw)*Math.cos(camState.pitch)*camState.dist;
-    const camZ = target.z - Math.cos(camState.yaw)*Math.cos(camState.pitch)*camState.dist;
-    const camY = target.y + 1.6 + Math.sin(camState.pitch)*camState.dist;
-    camera.position.set(camX, camY, camZ);
-    camera.lookAt(target.x, target.y + 1.6, target.z);
+  // Smoothly eases toward the ideal follow position/lookAt instead of
+  // snapping every frame, matching Roblox's soft trailing camera feel.
+  let smoothPos = null;
+  let smoothLook = null;
+
+  function followCamera(target, dt){
+    const idealX = target.x - Math.sin(camState.yaw)*Math.cos(camState.pitch)*camState.dist;
+    const idealZ = target.z - Math.cos(camState.yaw)*Math.cos(camState.pitch)*camState.dist;
+    const idealY = target.y + 1.6 + Math.sin(camState.pitch)*camState.dist;
+    const lookX = target.x, lookY = target.y + 1.6, lookZ = target.z;
+
+    if (!smoothPos){
+      smoothPos = { x:idealX, y:idealY, z:idealZ };
+      smoothLook = { x:lookX, y:lookY, z:lookZ };
+    } else {
+      const t = dt ? 1 - Math.pow(0.0001, dt) : 1;
+      smoothPos.x += (idealX - smoothPos.x) * t;
+      smoothPos.y += (idealY - smoothPos.y) * t;
+      smoothPos.z += (idealZ - smoothPos.z) * t;
+      smoothLook.x += (lookX - smoothLook.x) * t;
+      smoothLook.y += (lookY - smoothLook.y) * t;
+      smoothLook.z += (lookZ - smoothLook.z) * t;
+    }
+
+    camera.position.set(smoothPos.x, smoothPos.y, smoothPos.z);
+    camera.lookAt(smoothLook.x, smoothLook.y, smoothLook.z);
   }
 
   function resetCamera(){
@@ -64,6 +84,8 @@ function createEngine(container){
     camState.pitch = 0.35;
     zoomIndex = 2;
     camState.dist = zoomSteps[zoomIndex];
+    smoothPos = null;
+    smoothLook = null;
   }
 
   function clearScene(){

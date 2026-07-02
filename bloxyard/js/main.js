@@ -10,6 +10,7 @@
   const audio = window.Bloxyard.Audio;
   const GAMES = window.Bloxyard.GAMES;
   const UPDATES = window.Bloxyard.UPDATES;
+  const Editor = window.Bloxyard.Editor;
 
   const profile = storage.loadProfile();
 
@@ -23,6 +24,7 @@
   let currentGameId = null;
   let playerChar = null;
   let motionState = null;
+  let levelCallbacks = null;
 
   function refreshChrome(){
     ui.renderTopbar(profile);
@@ -33,7 +35,7 @@
     currentScreen = name;
     ui.showScreen(name);
     avatarPreview.setActive(name === 'avatar');
-    if (name !== 'play') engine.setActive(false);
+    if (name !== 'play' && name !== 'create') engine.setActive(false);
 
     if (name === 'home'){
       ui.renderGameGrid(document.getElementById('homeFeatured'), GAMES, startGame, currentGameId);
@@ -47,6 +49,11 @@
       document.getElementById('avatarNickInput').value = profile.nickname;
       document.getElementById('hatToggle').checked = !!profile.accessories.hat;
       ui.renderSwatches(profile.charColors, profile.accessories, onChangeColor, onChangeHatColor);
+      refreshChrome();
+    } else if (name === 'create'){
+      Editor.enter(engine);
+      engine.setUpdate((dt)=> Editor.update(engine, dt));
+      engine.setActive(true);
       refreshChrome();
     }
   }
@@ -90,6 +97,24 @@
   });
   document.addEventListener('click', (e)=>{
     if (!document.getElementById('notifWrapEl').contains(e.target)) ui.toggleNotifPanel(false);
+  });
+
+  /* ===== bloxies (premium currency — purchases not implemented yet) ===== */
+  const BLOXIES_PACKAGES = [
+    { amount: 400, price: '$4.99' },
+    { amount: 800, price: '$9.99' },
+    { amount: 1700, price: '$19.99' },
+    { amount: 4500, price: '$49.99' },
+  ];
+  document.getElementById('buyBloxiesBtn').addEventListener('click', ()=>{
+    ui.renderBloxiesPackages(BLOXIES_PACKAGES, ()=>{
+      ui.showGlobalToast("Purchases aren't available in this demo yet");
+    });
+    ui.toggleBuyBloxiesModal(true);
+  });
+  document.getElementById('closeBloxiesModal').addEventListener('click', ()=> ui.toggleBuyBloxiesModal(false));
+  document.getElementById('buyBloxiesModal').addEventListener('click', (e)=>{
+    if (e.target.id === 'buyBloxiesModal') ui.toggleBuyBloxiesModal(false);
   });
 
   /* ===== avatar customization ===== */
@@ -156,6 +181,38 @@
     ui.setGameTitleTag(game.name);
     ui.setInvCount(storage.totalCurrency(profile.inventory));
 
+    const isZombieRush = id === 'zombierush';
+    ui.setZombieHudVisible(isZombieRush);
+    if (isZombieRush) ui.updateZombieHp(currentLevel.maxHp, currentLevel.maxHp);
+
+    levelCallbacks = {
+      onCollect: collectItem,
+      onCheckpoint: ()=>{ audio.sfxCheckpoint(); ui.showCenterToast('Checkpoint!', 900); },
+      onFinish: ()=>{
+        audio.sfxFinish();
+        ui.showCenterToast('Finish! Great job, ' + profile.nickname + '!', 2600);
+        collectItem('Sky Trophy');
+      },
+      onFall: ()=>{ audio.sfxFall(); ui.showCenterToast('Fell off — back to checkpoint', 1000); },
+      onDamage: (hp, maxHp)=>{ audio.sfxHurt(); ui.updateZombieHp(hp, maxHp); },
+      onWaveStart: (wave, maxWave)=>{
+        ui.updateZombieWave(wave, maxWave);
+        ui.showCenterToast('Wave ' + wave + '!', 1400);
+      },
+      onKillZombie: ()=>{ audio.sfxPunch(); collectItem('Zombie Coin'); },
+      onGameOver: ()=>{
+        audio.sfxGameOver();
+        ui.showCenterToast('You were overrun! Game over.', 2600);
+        setTimeout(()=>{ if (currentGameId === id) exitGame(); }, 2600);
+      },
+      onWin: ()=>{
+        audio.sfxFinish();
+        ui.showCenterToast('Rush complete! You survived every wave.', 2600);
+        collectItem('Survivor Badge');
+        setTimeout(()=>{ if (currentGameId === id) exitGame(); }, 2600);
+      },
+    };
+
     goScreen('play');
     engine.setUpdate(gameLoop);
     engine.setActive(true);
@@ -165,6 +222,7 @@
     engine.setActive(false);
     pauseOpen = false;
     ui.togglePauseMenu(false);
+    ui.setZombieHudVisible(false);
     currentGameId = null;
     goScreen('games');
   }
@@ -193,24 +251,27 @@
     const footstep = stepWalkAnim(dt, playerChar, motionState, moving, running, grounded);
     if (footstep) audio.sfxFootstep();
 
-    currentLevel.update(dt, playerChar.group, {
-      onCollect: collectItem,
-      onCheckpoint: ()=>{ audio.sfxCheckpoint(); ui.showCenterToast('Checkpoint!', 900); },
-      onFinish: ()=>{
-        audio.sfxFinish();
-        ui.showCenterToast('Finish! Great job, ' + profile.nickname + '!', 2600);
-        collectItem('Sky Trophy');
-      },
-      onFall: ()=>{ audio.sfxFall(); ui.showCenterToast('Fell off — back to checkpoint', 1000); },
-    });
+    currentLevel.update(dt, playerChar.group, levelCallbacks);
 
-    engine.followCamera(playerChar.group.position);
+    engine.followCamera(playerChar.group.position, dt);
   }
 
   document.getElementById('resumeBtn').addEventListener('click', ()=>{ togglePause(); audio.sfxClick(); });
   document.getElementById('leaveBtn').addEventListener('click', exitGame);
 
+  engine.renderer.domElement.addEventListener('click', (e)=>{
+    if (currentScreen === 'create'){
+      Editor.handleClick(engine, e.clientX, e.clientY);
+    } else if (currentScreen === 'play' && !invOpen && !pauseOpen && currentLevel && currentLevel.onAttack){
+      currentLevel.onAttack(playerChar.group, levelCallbacks);
+    }
+  });
+
   window.addEventListener('keydown', (e)=>{
+    if (currentScreen === 'create'){
+      if (e.code === 'Escape') goScreen('games');
+      return;
+    }
     if (currentScreen !== 'play') return;
     if (e.code === 'Escape'){
       if (invOpen){

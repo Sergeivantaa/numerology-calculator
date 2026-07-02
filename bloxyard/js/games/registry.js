@@ -22,11 +22,11 @@ const GAMES = [
   {
     id: 'zombierush',
     name: 'Zombie Rush',
-    desc: 'Coming soon',
-    badge: 'SOON',
+    desc: 'Survive 5 waves of zombies. Left-click to punch, don\'t let them corner you!',
+    badge: 'ZOMBIE RUSH',
     grad: 'linear-gradient(135deg,#a33232,#4a1414)',
-    available: false,
-    create: null,
+    available: true,
+    create: window.Bloxyard.Games.zombierush,
   },
 ];
 

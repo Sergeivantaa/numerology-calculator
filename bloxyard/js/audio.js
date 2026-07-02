@@ -62,5 +62,14 @@ function sfxFinish(){
 }
 function sfxFall(){ beep(180, 0.14, 'square', 0.16, 60); }
 function sfxClick(){ beep(340, 0.05, 'square', 0.12); }
+function sfxPunch(){ beep(90, 0.08, 'square', 0.2, 40); }
+function sfxHurt(){ beep(180, 0.12, 'sawtooth', 0.15, 70); }
+function sfxGameOver(){
+  beep(300, 0.18, 'square', 0.18, 120);
+  setTimeout(()=>beep(220, 0.22, 'square', 0.18, 80), 160);
+}
 
-window.Bloxyard.Audio = { sfxFootstep, sfxJump, sfxLand, sfxPickup, sfxCheckpoint, sfxFinish, sfxFall, sfxClick };
+window.Bloxyard.Audio = {
+  sfxFootstep, sfxJump, sfxLand, sfxPickup, sfxCheckpoint, sfxFinish, sfxFall, sfxClick,
+  sfxPunch, sfxHurt, sfxGameOver,
+};

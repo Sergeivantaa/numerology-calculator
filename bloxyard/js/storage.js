@@ -31,7 +31,12 @@ function getLastSeenUpdate(){
 }
 function setLastSeenUpdate(id){ try{ localStorage.setItem(PREFIX+'lastSeenUpdate', String(id)); }catch(e){} }
 
+function loadBuild(){
+  try{ const b = localStorage.getItem(PREFIX+'build'); return b ? JSON.parse(b) : []; }catch(e){ return []; }
+}
+function saveBuild(objects){ try{ localStorage.setItem(PREFIX+'build', JSON.stringify(objects)); }catch(e){} }
+
 window.Bloxyard.Storage = {
   loadProfile, saveNickname, saveCharColors, saveAccessories, saveInventory, totalCurrency,
-  getLastSeenUpdate, setLastSeenUpdate,
+  getLastSeenUpdate, setLastSeenUpdate, loadBuild, saveBuild,
 };
