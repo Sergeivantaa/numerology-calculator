@@ -28,6 +28,24 @@ const GAMES = [
     available: true,
     create: window.Bloxyard.Games.zombierush,
   },
+  {
+    id: 'lavarush',
+    name: 'Lava Rush',
+    desc: 'Climb the spiral tower before the rising lava catches you!',
+    badge: 'LAVA RUSH',
+    grad: 'linear-gradient(135deg,#ff5a1e,#7a1e08)',
+    available: true,
+    create: window.Bloxyard.Games.lavarush,
+  },
+  {
+    id: 'maze',
+    name: 'Maze Escape',
+    desc: 'Find the exit of a randomly generated maze before time runs out.',
+    badge: 'MAZE ESCAPE',
+    grad: 'linear-gradient(135deg,#6a5acd,#2a1a5e)',
+    available: true,
+    create: window.Bloxyard.Games.maze,
+  },
 ];
 
 window.Bloxyard.GAMES = GAMES;

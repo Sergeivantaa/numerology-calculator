@@ -107,6 +107,7 @@
 <div id="screen-create" class="screen">
   <div id="createHud">
     <div id="createPalette">
+      <button id="playtestBtn" class="paletteItem playtestItem">&#9654; Play My Build</button>
       <div class="paletteTitle">PALETTE</div>
       <button class="paletteItem" data-item="block">Block</button>
       <div class="swatchRow" id="blockColorRow"></div>
@@ -115,6 +116,10 @@
       <button id="clearBuildBtn" class="paletteItem clearItem">Clear All</button>
     </div>
     <div id="createHint">Click ground to place &middot; click an object to remove &middot; right-click &mdash; rotate camera &middot; wheel &mdash; zoom &middot; WASD &mdash; pan &middot; ESC &mdash; exit</div>
+    <div id="playtestHud">
+      <div id="playtestBanner">Playtesting your build &mdash; WASD move &middot; SHIFT run &middot; SPACE jump</div>
+      <button id="stopPlaytestBtn">&#9632; Stop Playtesting (ESC)</button>
+    </div>
   </div>
 </div>
 
@@ -171,6 +176,7 @@
       <div id="waveText">Wave 1 / 5</div>
       <div id="hpBarWrap"><div id="hpBarFill"></div><div id="hpText">100 / 100</div></div>
     </div>
+    <div id="timerHud">Time left: <span id="timerText">90</span>s</div>
   </div>
   <div id="inventoryPanel">
     <div id="invTitleBar">INVENTORY</div>
@@ -204,6 +210,8 @@
 <script src="js/games/retroyard.js"></script>
 <script src="js/games/skyrace.js"></script>
 <script src="js/games/zombierush.js"></script>
+<script src="js/games/lavarush.js"></script>
+<script src="js/games/maze.js"></script>
 <script src="js/games/registry.js"></script>
 <script src="js/editor.js"></script>
 <script src="js/main.js"></script>

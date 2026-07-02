@@ -198,6 +198,30 @@ window.Bloxyard = window.Bloxyard || {};
     engine.followCamera(panTarget, dt);
   }
 
+  function getPlayLevel(){
+    const blocks = placed.filter(p => p.type === 'block');
+    const lim = GRID_EXTENT/2 - 1;
+    return {
+      name: 'My Build',
+      spawn: { x:0, y:2, z:0 },
+      bounds: { minX:-lim, maxX:lim, minZ:-lim, maxZ:lim },
+      groundHeightAt(x, z){
+        let h = 0;
+        blocks.forEach(b=>{
+          if (x > b.x-0.5 && x < b.x+0.5 && z > b.z-0.5 && z < b.z+0.5) h = Math.max(h, 1);
+        });
+        return h;
+      },
+      update(){}, // freeform builds have no win/lose conditions to report
+    };
+  }
+
+  function setPlaytestUI(playtesting){
+    document.getElementById('createPalette').style.display = playtesting ? 'none' : '';
+    document.getElementById('createHint').style.display = playtesting ? 'none' : '';
+    document.getElementById('playtestHud').classList.toggle('active', playtesting);
+  }
+
   function handleClick(engine, clientX, clientY){
     const rect = engine.renderer.domElement.getBoundingClientRect();
     const mouse = new THREE.Vector2(
@@ -225,5 +249,5 @@ window.Bloxyard = window.Bloxyard || {};
     }
   }
 
-  window.Bloxyard.Editor = { enter, update, handleClick };
+  window.Bloxyard.Editor = { enter, update, handleClick, getPlayLevel, setPlaytestUI };
 })();

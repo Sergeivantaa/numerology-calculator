@@ -216,6 +216,14 @@ function updateZombieWave(wave, maxWave){
   document.getElementById('waveText').textContent = 'Wave ' + wave + ' / ' + maxWave;
 }
 
+function setTimerVisible(visible){
+  document.getElementById('timerHud').classList.toggle('active', visible);
+}
+
+function updateTimer(seconds){
+  document.getElementById('timerText').textContent = seconds;
+}
+
 window.Bloxyard.UI = {
   PALETTE, initNav, showScreen, renderTopbar, renderMiniFigure, renderGameGrid,
   renderInventoryGrid, renderSwatches, showPickupToast, showCenterToast,
@@ -224,4 +232,5 @@ window.Bloxyard.UI = {
   renderPlayerList, togglePauseMenu,
   renderBloxiesPackages, toggleBuyBloxiesModal, showGlobalToast,
   setZombieHudVisible, updateZombieHp, updateZombieWave,
+  setTimerVisible, updateTimer,
 };

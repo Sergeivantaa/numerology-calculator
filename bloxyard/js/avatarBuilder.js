@@ -59,6 +59,31 @@ function getFaceTexture(){
   return sharedFaceTexture;
 }
 
+// A proper cap shape (domed crown + brim) instead of a flat slab, so it
+// actually reads as a hat sitting on the head.
+function buildHat(color, plasticProps){
+  const mat = new THREE.MeshPhongMaterial({ color, ...plasticProps });
+  const group = new THREE.Group();
+
+  const crownRadius = 0.48;
+  const crownThetaLength = Math.PI * 0.55;
+  const crown = new THREE.Mesh(
+    new THREE.SphereGeometry(crownRadius, 16, 10, 0, Math.PI*2, 0, crownThetaLength),
+    mat
+  );
+  group.add(crown);
+
+  const brim = new THREE.Mesh(
+    new THREE.CylinderGeometry(crownRadius*1.08, crownRadius*1.04, 0.05, 20),
+    mat
+  );
+  brim.position.y = crownRadius * Math.cos(crownThetaLength);
+  group.add(brim);
+
+  group.traverse(o=>{ if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; } });
+  return { group, material: mat };
+}
+
 // Angry X-eyes + frown decal for zombies, same transparent-plane approach
 // as the regular smiley so it drops onto any head shape.
 let sharedZombieFaceTexture = null;
@@ -152,12 +177,12 @@ function buildCharacter(colors, accessories, faceType){
   group.add(face);
 
   let hat = null;
-  const hatMat = new THREE.MeshPhongMaterial({ color: accessories.hatColor, ...plasticProps });
+  let hatMat = null;
   if (accessories.hat){
-    const hatGeom = roundedBoxGeometry(0.95, 0.32, 0.95, 0.08);
-    hat = new THREE.Mesh(hatGeom, hatMat);
-    hat.position.set(0, hipY + torsoH + headS + 0.16, 0);
-    hat.castShadow = true;
+    const built = buildHat(accessories.hatColor, plasticProps);
+    hat = built.group;
+    hatMat = built.material;
+    hat.position.set(0, hipY + torsoH + headS + 0.04, 0);
     group.add(hat);
   }
 

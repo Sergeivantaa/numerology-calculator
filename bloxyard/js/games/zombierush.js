@@ -151,7 +151,7 @@ function createZombieRushLevel(scene){
           callbacks.onDamage && callbacks.onDamage(hp, MAX_HP);
           if (hp <= 0){
             ended = true;
-            callbacks.onGameOver && callbacks.onGameOver();
+            callbacks.onGameOver && callbacks.onGameOver('You were overrun! Game over.');
           }
         }
       });
@@ -167,7 +167,7 @@ function createZombieRushLevel(scene){
           zombies = [];
           if (wave >= MAX_WAVE){
             ended = true;
-            callbacks.onWin && callbacks.onWin();
+            callbacks.onWin && callbacks.onWin('Rush complete! You survived every wave.', 'Survivor Badge');
           } else {
             startWave(callbacks);
           }

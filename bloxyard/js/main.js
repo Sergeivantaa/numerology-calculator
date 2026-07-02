@@ -25,6 +25,7 @@
   let playerChar = null;
   let motionState = null;
   let levelCallbacks = null;
+  let playtesting = false;
 
   function refreshChrome(){
     ui.renderTopbar(profile);
@@ -32,6 +33,11 @@
   }
 
   function goScreen(name){
+    if (currentScreen === 'create' && playtesting && name !== 'create'){
+      playtesting = false;
+      if (playerChar) engine.scene.remove(playerChar.group);
+      playerChar = null;
+    }
     currentScreen = name;
     ui.showScreen(name);
     avatarPreview.setActive(name === 'avatar');
@@ -185,6 +191,10 @@
     ui.setZombieHudVisible(isZombieRush);
     if (isZombieRush) ui.updateZombieHp(currentLevel.maxHp, currentLevel.maxHp);
 
+    const isMaze = id === 'maze';
+    ui.setTimerVisible(isMaze);
+    if (isMaze) ui.updateTimer(90);
+
     levelCallbacks = {
       onCollect: collectItem,
       onCheckpoint: ()=>{ audio.sfxCheckpoint(); ui.showCenterToast('Checkpoint!', 900); },
@@ -200,15 +210,16 @@
         ui.showCenterToast('Wave ' + wave + '!', 1400);
       },
       onKillZombie: ()=>{ audio.sfxPunch(); collectItem('Zombie Coin'); },
-      onGameOver: ()=>{
+      onTimerUpdate: (seconds)=>{ ui.updateTimer(seconds); if (seconds <= 10) audio.sfxHurt(); },
+      onGameOver: (msg)=>{
         audio.sfxGameOver();
-        ui.showCenterToast('You were overrun! Game over.', 2600);
+        ui.showCenterToast(msg || 'Game over.', 2600);
         setTimeout(()=>{ if (currentGameId === id) exitGame(); }, 2600);
       },
-      onWin: ()=>{
+      onWin: (msg, rewardItem)=>{
         audio.sfxFinish();
-        ui.showCenterToast('Rush complete! You survived every wave.', 2600);
-        collectItem('Survivor Badge');
+        ui.showCenterToast(msg || 'You made it!', 2600);
+        if (rewardItem) collectItem(rewardItem);
         setTimeout(()=>{ if (currentGameId === id) exitGame(); }, 2600);
       },
     };
@@ -223,9 +234,36 @@
     pauseOpen = false;
     ui.togglePauseMenu(false);
     ui.setZombieHudVisible(false);
+    ui.setTimerVisible(false);
     currentGameId = null;
     goScreen('games');
   }
+
+  function startPlaytest(){
+    const level = Editor.getPlayLevel();
+    currentLevel = level;
+    levelCallbacks = {};
+    playerChar = buildCharacter(profile.charColors, profile.accessories);
+    playerChar.group.position.set(level.spawn.x, level.spawn.y, level.spawn.z);
+    engine.scene.add(playerChar.group);
+    motionState = createMotionState();
+    engine.resetCamera();
+    playtesting = true;
+    Editor.setPlaytestUI(true);
+    engine.setUpdate(gameLoop);
+  }
+
+  function stopPlaytest(){
+    if (playerChar) engine.scene.remove(playerChar.group);
+    playerChar = null;
+    playtesting = false;
+    Editor.setPlaytestUI(false);
+    engine.resetCamera();
+    engine.setUpdate((dt)=> Editor.update(engine, dt));
+  }
+
+  document.getElementById('playtestBtn').addEventListener('click', ()=>{ startPlaytest(); audio.sfxClick(); });
+  document.getElementById('stopPlaytestBtn').addEventListener('click', ()=>{ stopPlaytest(); audio.sfxClick(); });
 
   function togglePause(){
     pauseOpen = !pauseOpen;
@@ -260,7 +298,7 @@
   document.getElementById('leaveBtn').addEventListener('click', exitGame);
 
   engine.renderer.domElement.addEventListener('click', (e)=>{
-    if (currentScreen === 'create'){
+    if (currentScreen === 'create' && !playtesting){
       Editor.handleClick(engine, e.clientX, e.clientY);
     } else if (currentScreen === 'play' && !invOpen && !pauseOpen && currentLevel && currentLevel.onAttack){
       currentLevel.onAttack(playerChar.group, levelCallbacks);
@@ -269,7 +307,10 @@
 
   window.addEventListener('keydown', (e)=>{
     if (currentScreen === 'create'){
-      if (e.code === 'Escape') goScreen('games');
+      if (e.code === 'Escape'){
+        if (playtesting) stopPlaytest();
+        else goScreen('games');
+      }
       return;
     }
     if (currentScreen !== 'play') return;
