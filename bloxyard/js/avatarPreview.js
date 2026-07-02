@@ -7,6 +7,14 @@ function createAvatarPreview(container){
   scene.add(new THREE.AmbientLight(0xffffff, 0.7));
   const sun = new THREE.DirectionalLight(0xffffff, 0.8);
   sun.position.set(4, 8, 6);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -3;
+  sun.shadow.camera.right = 3;
+  sun.shadow.camera.top = 4;
+  sun.shadow.camera.bottom = -3;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 20;
   scene.add(sun);
 
   const pad = new THREE.Mesh(
@@ -14,6 +22,7 @@ function createAvatarPreview(container){
     new THREE.MeshLambertMaterial({ color:0xb9c4d6 })
   );
   pad.position.y = -0.1;
+  pad.receiveShadow = true;
   scene.add(pad);
 
   let width = container.clientWidth || 360;
@@ -26,6 +35,8 @@ function createAvatarPreview(container){
   const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(width, height);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
 
   let character = buildCharacter();

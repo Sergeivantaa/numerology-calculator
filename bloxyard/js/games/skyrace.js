@@ -9,7 +9,33 @@ function createSkyRaceLevel(scene){
   scene.add(new THREE.HemisphereLight(0xffffff, 0x2a2a4a, 0.7));
   const sun = new THREE.DirectionalLight(0xffffff, 0.9);
   sun.position.set(15, 25, 10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -30;
+  sun.shadow.camera.right = 60;
+  sun.shadow.camera.top = 40;
+  sun.shadow.camera.bottom = -30;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 100;
+  sun.shadow.bias = -0.0025;
   scene.add(sun);
+
+  // ---- night sky detail: stars + moon ----
+  const starCount = 320;
+  const starPos = new Float32Array(starCount * 3);
+  for (let i=0;i<starCount;i++){
+    starPos[i*3]   = Math.random()*160 - 30;
+    starPos[i*3+1] = 14 + Math.random()*40;
+    starPos[i*3+2] = (Math.random()-0.5)*110;
+  }
+  const starGeom = new THREE.BufferGeometry();
+  starGeom.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const stars = new THREE.Points(starGeom, new THREE.PointsMaterial({ color:0xffffff, size:1.4, sizeAttenuation:false }));
+  scene.add(stars);
+
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(3, 16, 16), new THREE.MeshBasicMaterial({ color:0xf5f0d8 }));
+  moon.position.set(-10, 32, -40);
+  scene.add(moon);
 
   const platMat = new THREE.MeshLambertMaterial({ color:0x5c8fd6, flatShading:true });
   const checkMat = new THREE.MeshLambertMaterial({ color:0xffd23c, flatShading:true });
@@ -36,6 +62,8 @@ function createSkyRaceLevel(scene){
     const mat = p.finish ? finishMat : (p.checkpoint ? checkMat : platMat);
     const m = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, p.d), mat);
     m.position.set(p.x, p.y, p.z);
+    m.castShadow = true;
+    m.receiveShadow = true;
     scene.add(m);
     platforms.push({ ...p, top: p.y + p.h/2 });
   });
@@ -43,9 +71,11 @@ function createSkyRaceLevel(scene){
   const finishPlat = platforms[platforms.length-1];
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,3,6), new THREE.MeshLambertMaterial({ color:0xcccccc }));
   pole.position.set(finishPlat.x, finishPlat.top+1.5, finishPlat.z);
+  pole.castShadow = true;
   scene.add(pole);
   const flag = new THREE.Mesh(new THREE.BoxGeometry(0.8,0.5,0.05), new THREE.MeshLambertMaterial({ color:0xdb3c3c, flatShading:true }));
   flag.position.set(finishPlat.x+0.4, finishPlat.top+2.6, finishPlat.z);
+  flag.castShadow = true;
   scene.add(flag);
 
   function computeFloor(px, pz){
