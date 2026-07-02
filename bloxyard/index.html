@@ -16,6 +16,16 @@
     <a href="#" data-screen="avatar">Avatar</a>
   </nav>
   <div class="topbar-right">
+    <div class="notifWrap" id="notifWrapEl">
+      <button id="notifBtn" class="iconBtn" title="Updates" aria-label="Updates">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6v3.09c0 .48-.17.94-.47 1.31L4 15h16l-1.53-2.6a2 2 0 0 1-.47-1.31V8a6 6 0 0 0-6-6zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/></svg>
+        <span id="notifDot" class="notifDot hidden"></span>
+      </button>
+      <div id="notifPanel" class="notifPanel">
+        <div class="notifTitle">What's New</div>
+        <ul id="notifList"></ul>
+      </div>
+    </div>
     <div class="currency">Coins: <span id="currencyCount">0</span></div>
     <div class="userChip"><span id="topNick">Player</span></div>
     <button id="logoutBtn" class="smallBtn">Log Out</button>
@@ -144,6 +154,7 @@
 <script src="js/engine.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/updates.js"></script>
 <script src="js/avatarPreview.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/games/retroyard.js"></script>

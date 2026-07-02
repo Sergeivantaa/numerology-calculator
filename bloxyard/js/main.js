@@ -9,6 +9,7 @@
   const ui = window.Bloxyard.UI;
   const audio = window.Bloxyard.Audio;
   const GAMES = window.Bloxyard.GAMES;
+  const UPDATES = window.Bloxyard.UPDATES;
 
   const profile = storage.loadProfile();
 
@@ -64,6 +65,26 @@
   document.getElementById('logoutBtn').addEventListener('click', ()=>{
     if (currentScreen === 'play') engine.setActive(false);
     goScreen('login');
+  });
+
+  /* ===== notifications ===== */
+  function refreshNotifDot(){
+    const lastSeen = storage.getLastSeenUpdate();
+    ui.setNotifDotVisible(UPDATES.some(u => u.id > lastSeen));
+  }
+  document.getElementById('notifBtn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const panel = document.getElementById('notifPanel');
+    const opening = !panel.classList.contains('open');
+    ui.toggleNotifPanel(opening);
+    if (opening){
+      ui.renderNotifList(UPDATES);
+      storage.setLastSeenUpdate(Math.max(...UPDATES.map(u => u.id)));
+      ui.setNotifDotVisible(false);
+    }
+  });
+  document.addEventListener('click', (e)=>{
+    if (!document.getElementById('notifWrapEl').contains(e.target)) ui.toggleNotifPanel(false);
   });
 
   /* ===== avatar customization ===== */
@@ -182,6 +203,7 @@
     document.getElementById('loginUser').value = profile.nickname;
   }
   refreshChrome();
+  refreshNotifDot();
   goScreen('login');
 
 })();

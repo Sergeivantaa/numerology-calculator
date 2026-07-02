@@ -132,8 +132,27 @@ function showSavedMsg(){
   el._t = setTimeout(()=> el.classList.remove('show'), 1400);
 }
 
+function setNotifDotVisible(visible){
+  document.getElementById('notifDot').classList.toggle('hidden', !visible);
+}
+
+function toggleNotifPanel(open){
+  document.getElementById('notifPanel').classList.toggle('open', open);
+}
+
+function renderNotifList(updates){
+  const list = document.getElementById('notifList');
+  list.innerHTML = '';
+  updates.forEach(u=>{
+    const li = document.createElement('li');
+    li.textContent = u.text;
+    list.appendChild(li);
+  });
+}
+
 window.Bloxyard.UI = {
   PALETTE, initNav, showScreen, renderTopbar, renderMiniFigure, renderGameGrid,
   renderInventoryGrid, renderSwatches, showPickupToast, showCenterToast,
   setNickTag, setGameTitleTag, setInvCount, toggleInventoryPanel, showSavedMsg,
+  setNotifDotVisible, toggleNotifPanel, renderNotifList,
 };

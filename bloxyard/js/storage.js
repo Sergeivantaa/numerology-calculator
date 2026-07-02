@@ -26,4 +26,12 @@ function totalCurrency(inventory){
   return inventory.reduce((sum, item)=> sum + item.count, 0);
 }
 
-window.Bloxyard.Storage = { loadProfile, saveNickname, saveCharColors, saveAccessories, saveInventory, totalCurrency };
+function getLastSeenUpdate(){
+  try{ return parseInt(localStorage.getItem(PREFIX+'lastSeenUpdate') || '0', 10) || 0; }catch(e){ return 0; }
+}
+function setLastSeenUpdate(id){ try{ localStorage.setItem(PREFIX+'lastSeenUpdate', String(id)); }catch(e){} }
+
+window.Bloxyard.Storage = {
+  loadProfile, saveNickname, saveCharColors, saveAccessories, saveInventory, totalCurrency,
+  getLastSeenUpdate, setLastSeenUpdate,
+};

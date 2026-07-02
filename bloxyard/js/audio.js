@@ -18,7 +18,40 @@ function beep(freq, dur, type, vol, sweepTo){
   }catch(e){}
 }
 
-function sfxFootstep(){ beep(110 + Math.random()*20, 0.07, 'square', 0.10); }
+// A soft low thump plus a short burst of filtered noise reads as an actual
+// footstep tap instead of a flat chiptune beep.
+function sfxFootstep(){
+  try{
+    const ac = ctx();
+    const now = ac.currentTime;
+
+    const thumpFreq = 85 + Math.random()*18;
+    const osc = ac.createOscillator();
+    const oscGain = ac.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(thumpFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(thumpFreq*0.55, now + 0.09);
+    oscGain.gain.setValueAtTime(0.16, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    osc.connect(oscGain); oscGain.connect(ac.destination);
+    osc.start(now); osc.stop(now + 0.1);
+
+    const noiseDur = 0.045;
+    const bufferSize = Math.max(1, Math.floor(ac.sampleRate * noiseDur));
+    const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i=0;i<bufferSize;i++){ data[i] = (Math.random()*2-1) * (1 - i/bufferSize); }
+    const noise = ac.createBufferSource();
+    noise.buffer = buffer;
+    const noiseFilter = ac.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.value = 900 + Math.random()*300;
+    const noiseGain = ac.createGain();
+    noiseGain.gain.setValueAtTime(0.07, now);
+    noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ac.destination);
+    noise.start(now);
+  }catch(e){}
+}
 function sfxJump(){ beep(220, 0.16, 'square', 0.18, 440); }
 function sfxLand(){ beep(140, 0.10, 'square', 0.16, 90); }
 function sfxPickup(){ beep(660, 0.06, 'square', 0.16, 990); }
