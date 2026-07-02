@@ -11,6 +11,9 @@
   const GAMES = window.Bloxyard.GAMES;
   const UPDATES = window.Bloxyard.UPDATES;
   const Editor = window.Bloxyard.Editor;
+  const MARKET_ITEMS = window.Bloxyard.MARKET_ITEMS;
+  const PANTS_STYLES = window.Bloxyard.AvatarBuilder.PANTS_STYLES;
+  const Pet = window.Bloxyard.Pet;
 
   const profile = storage.loadProfile();
 
@@ -26,6 +29,7 @@
   let motionState = null;
   let levelCallbacks = null;
   let playtesting = false;
+  let petObj = null;
 
   function refreshChrome(){
     ui.renderTopbar(profile);
@@ -55,6 +59,10 @@
       document.getElementById('avatarNickInput').value = profile.nickname;
       document.getElementById('hatToggle').checked = !!profile.accessories.hat;
       ui.renderSwatches(profile.charColors, profile.accessories, onChangeColor, onChangeHatColor);
+      renderEquipRows();
+      refreshChrome();
+    } else if (name === 'market'){
+      renderMarketScreen();
       refreshChrome();
     } else if (name === 'create'){
       Editor.enter(engine);
@@ -142,6 +150,107 @@
     storage.saveAccessories(profile.accessories);
     avatarPreview.setCharacter(profile.charColors, profile.accessories);
   });
+
+  function ownedIn(category){
+    return MARKET_ITEMS.filter(it => it.category === category && profile.ownedItems.includes(it.id));
+  }
+
+  function refreshAvatarPreview(){
+    storage.saveAccessories(profile.accessories);
+    avatarPreview.setCharacter(profile.charColors, profile.accessories);
+  }
+
+  function renderEquipRows(){
+    // Face: Smile is always available; other faces only once owned.
+    const faceOptions = [{ label:'Smile', value:'smile' }];
+    if (profile.ownedItems.includes('face_sad')) faceOptions.push({ label:'Sad', value:'sad' });
+    ui.renderChipRow('faceOptions', faceOptions, profile.accessories.face, (value)=>{
+      profile.accessories.face = value;
+      refreshAvatarPreview();
+      renderEquipRows();
+    });
+
+    const hoodies = ownedIn('hoodie');
+    ui.showEquipRow('hoodieRow', hoodies.length > 0);
+    if (hoodies.length){
+      document.getElementById('hoodieToggle').checked = !!profile.accessories.hoodie;
+      ui.renderChipRow('hoodieOptions', hoodies.map(h => ({ label:h.name, value:h.id })),
+        MARKET_ITEMS.find(h => h.color === profile.accessories.hoodieColor && h.category==='hoodie') ?
+          MARKET_ITEMS.find(h => h.color === profile.accessories.hoodieColor && h.category==='hoodie').id : null,
+        (itemId)=>{
+          const item = MARKET_ITEMS.find(i => i.id === itemId);
+          profile.accessories.hoodieColor = item.color;
+          refreshAvatarPreview();
+          renderEquipRows();
+        });
+    }
+
+    const backpacks = ownedIn('backpack');
+    ui.showEquipRow('backpackRow', backpacks.length > 0);
+    if (backpacks.length){
+      document.getElementById('backpackToggle').checked = !!profile.accessories.backpack;
+      ui.renderChipRow('backpackOptions', backpacks.map(b => ({ label:b.name, value:b.id })),
+        MARKET_ITEMS.find(b => b.color === profile.accessories.backpackColor && b.category==='backpack') ?
+          MARKET_ITEMS.find(b => b.color === profile.accessories.backpackColor && b.category==='backpack').id : null,
+        (itemId)=>{
+          const item = MARKET_ITEMS.find(i => i.id === itemId);
+          profile.accessories.backpackColor = item.color;
+          refreshAvatarPreview();
+          renderEquipRows();
+        });
+    }
+
+    const pantsItems = ownedIn('pants');
+    ui.showEquipRow('pantsStyleRow', pantsItems.length > 0);
+    if (pantsItems.length){
+      const options = [{ label:'Default', value:null }].concat(
+        pantsItems.map(p => ({ label:p.name, value:p.id.replace('pants_','') }))
+      );
+      ui.renderChipRow('pantsStyleOptions', options, profile.accessories.pantsStyle, (value)=>{
+        profile.accessories.pantsStyle = value;
+        refreshAvatarPreview();
+        renderEquipRows();
+      });
+    }
+
+    const pets = ownedIn('pet');
+    ui.showEquipRow('petRow', pets.length > 0);
+    if (pets.length){
+      const options = [{ label:'None', value:null }].concat(
+        pets.map(p => ({ label:p.name, value:p.id.replace('pet_','') }))
+      );
+      ui.renderChipRow('petOptions', options, profile.accessories.pet, (value)=>{
+        profile.accessories.pet = value;
+        refreshAvatarPreview();
+        renderEquipRows();
+      });
+    }
+  }
+
+  document.getElementById('hoodieToggle').addEventListener('change', (e)=>{
+    profile.accessories.hoodie = e.target.checked;
+    refreshAvatarPreview();
+  });
+  document.getElementById('backpackToggle').addEventListener('change', (e)=>{
+    profile.accessories.backpack = e.target.checked;
+    refreshAvatarPreview();
+  });
+
+  /* ===== marketplace ===== */
+  function renderMarketScreen(){
+    ui.renderMarket(MARKET_ITEMS, profile.ownedItems, profile.coins, (item)=>{
+      if (profile.coins < item.price || profile.ownedItems.includes(item.id)) return;
+      profile.coins -= item.price;
+      profile.ownedItems.push(item.id);
+      storage.saveCoins(profile.coins);
+      storage.saveOwnedItems(profile.ownedItems);
+      refreshChrome();
+      audio.sfxClick();
+      ui.showGlobalToast('Bought ' + item.name + '!');
+      renderMarketScreen();
+    });
+  }
+
   document.getElementById('avatarSaveBtn').addEventListener('click', ()=>{
     const nick = document.getElementById('avatarNickInput').value.trim();
     profile.nickname = (nick || 'Player').slice(0, 16);
@@ -159,7 +268,10 @@
     if (entry) entry.count++;
     else profile.inventory.push({ name, count: 1 });
     storage.saveInventory(profile.inventory);
-    ui.setInvCount(storage.totalCurrency(profile.inventory));
+    profile.coins += 1;
+    storage.saveCoins(profile.coins);
+    ui.setInvCount(profile.coins);
+    refreshChrome();
     ui.showPickupToast('+1 ' + name);
     audio.sfxPickup();
     if (invOpen) ui.toggleInventoryPanel(true, profile.inventory);
@@ -178,6 +290,13 @@
     playerChar.group.position.set(currentLevel.spawn.x, currentLevel.spawn.y, currentLevel.spawn.z);
     engine.scene.add(playerChar.group);
 
+    petObj = null;
+    if (profile.accessories.pet){
+      petObj = Pet.buildPet(profile.accessories.pet);
+      petObj.group.position.copy(playerChar.group.position);
+      engine.scene.add(petObj.group);
+    }
+
     motionState = createMotionState();
     invOpen = false;
     pauseOpen = false;
@@ -185,7 +304,7 @@
     ui.togglePauseMenu(false);
     ui.setNickTag(profile.nickname);
     ui.setGameTitleTag(game.name);
-    ui.setInvCount(storage.totalCurrency(profile.inventory));
+    ui.setInvCount(profile.coins);
 
     const isZombieRush = id === 'zombierush';
     ui.setZombieHudVisible(isZombieRush);
@@ -236,6 +355,7 @@
     ui.setZombieHudVisible(false);
     ui.setTimerVisible(false);
     currentGameId = null;
+    petObj = null;
     goScreen('games');
   }
 
@@ -290,6 +410,15 @@
     if (footstep) audio.sfxFootstep();
 
     currentLevel.update(dt, playerChar.group, levelCallbacks);
+
+    if (petObj){
+      petObj.update(dt, {
+        x: playerChar.group.position.x,
+        y: playerChar.group.position.y,
+        z: playerChar.group.position.z,
+        rotY: playerChar.group.rotation.y,
+      });
+    }
 
     engine.followCamera(playerChar.group.position, dt);
   }

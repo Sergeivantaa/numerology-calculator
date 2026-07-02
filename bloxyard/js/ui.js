@@ -32,8 +32,7 @@ function showScreen(name){
 function renderTopbar(profile){
   document.getElementById('topNick').textContent = profile.nickname;
   document.getElementById('homeNick').textContent = profile.nickname;
-  document.getElementById('currencyCount').textContent =
-    profile.inventory.reduce((a,b)=>a+b.count,0);
+  document.getElementById('currencyCount').textContent = profile.coins;
 }
 
 function renderMiniFigure(charColors){
@@ -224,6 +223,65 @@ function updateTimer(seconds){
   document.getElementById('timerText').textContent = seconds;
 }
 
+function renderMarket(items, ownedItems, coins, onBuy){
+  const container = document.getElementById('marketSections');
+  container.innerHTML = '';
+  const categories = window.Bloxyard.CATEGORY_LABELS;
+  const byCategory = {};
+  items.forEach(it=>{ (byCategory[it.category] = byCategory[it.category] || []).push(it); });
+
+  Object.keys(categories).forEach(cat=>{
+    const list = byCategory[cat];
+    if (!list) return;
+    const section = document.createElement('div');
+    section.className = 'marketSection';
+    const title = document.createElement('div');
+    title.className = 'marketSectionTitle';
+    title.textContent = categories[cat];
+    section.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'marketGrid';
+    list.forEach(item=>{
+      const owned = ownedItems.includes(item.id);
+      const canAfford = coins >= item.price;
+      const card = document.createElement('div');
+      card.className = 'marketCard';
+      const btnClass = owned ? 'owned' : (canAfford ? '' : 'cantAfford');
+      const btnLabel = owned ? 'OWNED' : (canAfford ? 'BUY (' + item.price + ' Coins)' : 'NEED ' + item.price + ' COINS');
+      card.innerHTML =
+        "<div class='marketThumb' style='background:" + item.grad + "'>" + item.name + '</div>' +
+        "<div class='marketInfo'>" +
+          "<div class='marketName'>" + item.name + '</div>' +
+          "<button class='marketBuyBtn " + btnClass + "'>" + btnLabel + '</button>' +
+        '</div>';
+      if (!owned && canAfford){
+        card.querySelector('.marketBuyBtn').addEventListener('click', ()=> onBuy(item));
+      }
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+}
+
+function renderChipRow(containerId, options, selectedValue, onSelect){
+  const row = document.getElementById(containerId);
+  row.innerHTML = '';
+  options.forEach(opt=>{
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip' + (opt.value === selectedValue ? ' selected' : '');
+    chip.textContent = opt.label;
+    chip.addEventListener('click', ()=> onSelect(opt.value));
+    row.appendChild(chip);
+  });
+}
+
+function showEquipRow(id, show){
+  document.getElementById(id).classList.toggle('show', show);
+}
+
 window.Bloxyard.UI = {
   PALETTE, initNav, showScreen, renderTopbar, renderMiniFigure, renderGameGrid,
   renderInventoryGrid, renderSwatches, showPickupToast, showCenterToast,
@@ -231,6 +289,7 @@ window.Bloxyard.UI = {
   setNotifDotVisible, toggleNotifPanel, renderNotifList,
   renderPlayerList, togglePauseMenu,
   renderBloxiesPackages, toggleBuyBloxiesModal, showGlobalToast,
+  renderMarket, renderChipRow, showEquipRow,
   setZombieHudVisible, updateZombieHp, updateZombieWave,
   setTimerVisible, updateTimer,
 };

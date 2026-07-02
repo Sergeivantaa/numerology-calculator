@@ -191,6 +191,42 @@ canvas { display:block; width:100%; height:100%; cursor:pointer; }
 .swatch.selected { border-color:#245686; box-shadow:0 0 0 2px #ffb100; }
 .hatGroup { margin-top:4px; }
 .hatGroup label { font-size:11px; font-weight:bold; color:#777; cursor:pointer; }
+#hoodieRow, #backpackRow, #pantsStyleRow, #petRow { display:none; margin-top:4px; }
+#hoodieRow.show, #backpackRow.show, #pantsStyleRow.show, #petRow.show { display:flex; }
+#hoodieRow label, #backpackRow label { font-size:11px; font-weight:bold; color:#777; cursor:pointer; }
+.chipRow { display:flex; flex-wrap:wrap; gap:6px; }
+.chip {
+  font-family:inherit; font-size:11px; font-weight:bold; padding:6px 10px;
+  background:#f2f2f2; color:#333; border:1px solid #ccc; border-radius:3px; cursor:pointer;
+}
+.chip:hover { background:#e6e6e6; }
+.chip.selected { background:#245686; color:#fff; border-color:#173a5c; }
+
+/* ==== MARKETPLACE ==== */
+.marketSection { margin-bottom:22px; }
+.marketSection:last-child { margin-bottom:0; }
+.marketSectionTitle {
+  font-size:13px; font-weight:bold; color:#245686; letter-spacing:0.5px;
+  margin-bottom:10px; padding-bottom:6px; border-bottom:2px solid #e0e0e0;
+}
+.marketGrid { display:flex; gap:16px; flex-wrap:wrap; }
+.marketCard { width:180px; border:1px solid #ccc; border-radius:3px; overflow:hidden; background:#fafafa; }
+.marketThumb {
+  height:90px; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,0.95); font-weight:bold; font-size:12px; text-align:center; padding:8px;
+  text-shadow:1px 1px 2px rgba(0,0,0,0.5);
+}
+.marketInfo { padding:10px; }
+.marketName { font-size:13px; font-weight:bold; color:#333; margin-bottom:6px; }
+.marketBuyBtn {
+  width:100%; font-family:inherit; font-weight:bold; font-size:12px; padding:8px 0;
+  background:#3aa43a; color:#fff; border:1px solid #237023; border-radius:3px; cursor:pointer;
+}
+.marketBuyBtn:hover { background:#48b848; }
+.marketBuyBtn.owned { background:#888; border-color:#666; cursor:default; }
+.marketBuyBtn.owned:hover { background:#888; }
+.marketBuyBtn.cantAfford { background:#bbb; border-color:#999; cursor:not-allowed; }
+.marketBuyBtn.cantAfford:hover { background:#bbb; }
 
 .avatarCustomizePanel input[type="text"] {
   width:100%; font-family:inherit; font-size:13px; padding:7px 9px; border:1px solid #bbb; border-radius:3px; margin-bottom:4px;
